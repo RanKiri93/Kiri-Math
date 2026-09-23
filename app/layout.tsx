@@ -7,8 +7,11 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "104136 · משוואות דיפרנציאליות רגילות",
-  description: "Interactive learning modules for ordinary differential equations.",
+  title: {
+    default: "Kiri Math",
+    template: "%s · Kiri Math",
+  },
+  description: "Interactive mathematics courses: lecture notes, explorations and practice.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

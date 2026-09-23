@@ -1,37 +1,45 @@
-# ארכיטקטורת האתר — סביבת לימוד אינטראקטיבית במד״ר (104136)
+# ארכיטקטורת האתר — Kiri Math (קורס 104136)
 
-מסמך זה מתאר את הארכיטקטורה של אתר הקורס: מבנה התוכן, המודולים, שכבות הלוגיקה המתמטית, ומערכת העיצוב.
+מסמך זה מתאר את הארכיטקטורה של האתר: מעטפת הקורסים, מבנה התוכן, המודולים, שכבות הלוגיקה המתמטית, ומערכת העיצוב.
 
-**עדכון אחרון:** 2 בספטמבר 2026
+**עדכון אחרון:** 23 בספטמבר 2026
 
 ---
 
 ## 1. תמונה כללית
 
-האתר הוא סביבת לימוד אינטראקטיבית לקורס משוואות דיפרנציאליות רגילות (104136), בעברית מלאה (RTL), הבנוי כאוסף מודולים עצמאיים. כל מודול משלב: מבוא תיאורטי, פעילות חקירה אינטראקטיבית, ותרגול עצמי עם משוב.
+האתר (שם עבודה: **Kiri Math**) הוא סביבת לימוד אינטראקטיבית בעברית מלאה (RTL), שבנויה לארח כמה קורסים. כרגע יש בו קורס אחד, משוואות דיפרנציאליות רגילות (104136). כל קורס מאורגן לפי פרקי הרשימות שלו, ובפרקים יושבים מודולים עצמאיים. כל מודול משלב: מבוא תיאורטי, פעילות חקירה אינטראקטיבית, ותרגול עצמי עם משוב. תוכנית המבנה הרב־קורסי: `docs/plans/kiri-math-site-structure.md`.
 
 ### מפת האתר
 
 ```
-/  (עמוד הבית — ארבעה כרטיסי מודולים)
-├── /phase-plane                         מישור פאזה                    [פעיל]
-│     מבוא │ מישור פאזה (מעבדה) │ הרכבת המטריצה │ תרגול עצמי
-├── /constant-coefficients-euler         מקדמים קבועים ומשוואות אוילר  [פעיל]
-│     מבוא │ הרכבת המשוואה │ תרגול
-│       ├── מקדמים קבועים        (תרגול רב־שלבי)
-│       ├── משוואות אוילר        (תרגול טרנספורמציה)
-│       └── שחזור משוואה         (מנוע תבניות סדר 2/3)
-├── /linear-homogeneous                  משוואות ליניאריות הומוגניות  [בבנייה]
-│     מבוא │ הרכבת משוואה │ וורונסקיאן (placeholder) │ תרגול
-│       └── השלמה למערכת יסודית  (סדר 2, משפחות זרועות)
-└── /function-sequences-series           סדרות וטורי פונקציות         [בבנייה]
-      מבוא │ סדרות פונקציות │ טורי פונקציות │ טורי חזקות │ טורי טיילור
-        └── מבוא פעיל (מפת דרך); ארבע לשוניות התוכן הן placeholders מתוכננים
+/  (הקורסים שלי — כרטיס לכל קורס; כרגע קורס אחד)
+└── /ode                                    משוואות דיפרנציאליות רגילות — פאנל «חומר הקורס»
+    ├── /ode/1                              פרק 1 · סדרות וטורים של פונקציות
+    │   └── /ode/1/function-sequences-series      סדרות וטורי פונקציות          [בבנייה]
+    │         מבוא │ סדרות פונקציות │ טורי פונקציות │ טורי חזקות │ טורי טיילור
+    │           └── מבוא פעיל (מפת דרך); ארבע לשוניות התוכן הן placeholders מתוכננים
+    ├── /ode/2, /ode/3                      פרקים 2–3 (אין עדיין מודולים)
+    ├── /ode/4                              פרק 4 · משוואות מסדר גבוה
+    │   ├── /ode/4/linear-homogeneous             משוואות ליניאריות הומוגניות   [בבנייה]
+    │   │     מבוא │ הרכבת משוואה │ וורונסקיאן (placeholder) │ תרגול
+    │   │       └── השלמה למערכת יסודית  (סדר 2, משפחות זרועות)
+    │   └── /ode/4/constant-coefficients-euler    מקדמים קבועים ומשוואות אוילר  [פעיל]
+    │         מבוא │ הרכבת המשוואה │ תרגול
+    │           ├── מקדמים קבועים        (תרגול רב־שלבי)
+    │           ├── משוואות אוילר        (תרגול טרנספורמציה)
+    │           └── שחזור משוואה         (תבניות CC סדר 2/3; אחרת tryGenerateLegacy)
+    ├── /ode/5                              פרק 5 · מערכות מד״ר
+    │   └── /ode/5/phase-plane                    מישור הפאזה                   [פעיל]
+    │         מבוא │ מישור פאזה (מעבדה) │ הרכבת המטריצה │ תרגול עצמי
+    └── /ode/6                              פרק 6 · תורת שטורם ליוביל (אין עדיין מודולים)
 ```
+
+הכתובות הישנות (`/phase-plane`, `/constant-coefficients-euler`, `/linear-homogeneous`, `/function-sequences-series`) מפנות (307) לנתיב החדש.
 
 ### מצב המודולים
 
-| מודול | כרטיס בעמוד הבית | מצב |
+| מודול | כרטיס בעמוד הפרק | מצב |
 |---|---|---|
 | מישור פאזה | פעיל | שלם: מבוא, מעבדה, הרכבת מטריצה, תרגול |
 | מקדמים קבועים ואוילר | פעיל | שלם: מבוא, הרכבה, שלושה מצבי תרגול |
@@ -46,14 +54,14 @@
 | UI | React 19, TypeScript |
 | מתמטיקה | KaTeX + react-katex |
 | אלגברה סימבולית | **nerdamer** 1.1.13 — בשימוש במודול הליניארי ההומוגני בלבד |
-| בדיקות | **vitest** — `npm test`; כרגע רק במודול הליניארי ההומוגני |
+| בדיקות | **vitest** — `npm test`; במודול אוילר, במודול הליניארי ההומוגני, בנתוני הקורס (`app/ode/course.test.ts`) ובניווט הרשימות (`app/_site/notesNavigation.test.ts`) |
 | פונט | Assistant (משקלים 400/600/700/800) דרך `@fontsource` |
 | פריסה | Cloudflare Workers (`worker/index.ts`), wrangler |
 | DB (אופציונלי) | Drizzle + D1 — הסכמה ריקה, לא בשימוש |
 
 ### ניהול State
 
-React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **אין** Context, Redux, localStorage או פרמטרים ב-URL. לשוניות מנוהלות ב-state פנימי (לא בניתוב). שאלות תרגול נוצרות עם RNG זרוע (seeded) לשחזוריות. מודול ההומוגניות הליניארית **משתמש מחדש** ב-`SeededRandom` של מודול אוילר.
+React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **אין** Context, Redux, localStorage או פרמטרים ב-URL. קורסים, פרקים ומודולים הם נתיבים; לשוניות בתוך מודול מנוהלות ב-state פנימי (לא בניתוב). עמודי הקורס והפרקים הם server components; ה-state היחיד בהם שייך לקורא הרשימות (הסעיף הפתוח), והוא לא נשמר בכתובת. שאלות תרגול נוצרות עם RNG זרוע (seeded) לשחזוריות. מודול ההומוגניות הליניארית **משתמש מחדש** ב-`SeededRandom` של מודול אוילר.
 
 ---
 
@@ -61,20 +69,79 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 
 | Route | קובץ | תפקיד |
 |---|---|---|
-| `/` | `app/page.tsx` | עמוד הבית: hero + רשת כרטיסי מודולים (שניים פעילים, שניים בבנייה) |
-| `/phase-plane` | `app/phase-plane/page.tsx` | מעטפת דקה שטוענת את `PhasePlaneModule` |
-| `/constant-coefficients-euler` | `app/constant-coefficients-euler/page.tsx` | מעטפת מודול עם 3 לשוניות פנימיות |
-| `/linear-homogeneous` | `app/linear-homogeneous/page.tsx` | מעטפת מודול עם 4 לשוניות פנימיות |
-| `/function-sequences-series` | `app/function-sequences-series/page.tsx` | מעטפת דקה שטוענת את `FunctionSequencesSeriesModule` (5 לשוניות) |
-| layout | `app/layout.tsx` | `lang="he" dir="rtl"`, טעינת Assistant + KaTeX CSS + `globals.css` |
+| `/` | `app/page.tsx` | «הקורסים שלי»: סמליל `BrandWordmark` + רשת `CourseCard` מתוך `app/courses.ts` |
+| `/ode` | `app/ode/page.tsx` | `CourseShell` עם פאנל «חומר הקורס» (`CourseMaterialsPanel`) |
+| `/ode/1` … `/ode/6` | `app/ode/{1..6}/page.tsx` | עמוד פרק דרך `OdeChapterPage`: `CourseShell` + `ChapterPanel` |
+| `/ode/5/phase-plane` | `app/ode/5/phase-plane/page.tsx` | טוען את `PhasePlaneModule` |
+| `/ode/4/constant-coefficients-euler` | `app/ode/4/constant-coefficients-euler/page.tsx` | טוען את `ConstantCoefficientsEulerModule` (3 לשוניות) |
+| `/ode/4/linear-homogeneous` | `app/ode/4/linear-homogeneous/page.tsx` | טוען את `LinearHomogeneousModule` (4 לשוניות) |
+| `/ode/1/function-sequences-series` | `app/ode/1/function-sequences-series/page.tsx` | טוען את `FunctionSequencesSeriesModule` (5 לשוניות) |
+| `/phase-plane`, `/constant-coefficients-euler`, `/linear-homogeneous`, `/function-sequences-series` | `page.tsx` בתיקייה הישנה | `redirect()` שרתי (307) לנתיב החדש תחת `/ode/N/` |
+| `/courses/ode/*.pdf` | `public/courses/ode/` | `notes.pdf`, `syllabus.pdf`, `formula-sheet.pdf`, מועתקים ע״י `scripts/sync-course-notes.ts` |
+| layout | `app/layout.tsx` | `lang="he" dir="rtl"`, טעינת Assistant + KaTeX CSS + `globals.css`; כותרת `%s · Kiri Math` |
 
-ניווט: מעמוד הבית לכרטיסי המודולים; בכל מודול topbar עם קישור «עמוד הבית» וכפתורי לשוניות (state, לא URL).
+כל עמוד מייצא `metadata` משלו (שם הקורס, `פרק N · שם` או שם המודול). הנתיבים הם תיקיות רגילות בלבד, בלי `[param]`, route groups או parallel routes: ה-dev server (vinext) הוא מימוש מחדש של ה-App Router, ורק `page.tsx` ו-`redirect()` נבדקו עליו ועל `next build`.
+
+ניווט: מהדשבורד לכרטיס הקורס; בעמודי הקורס מסילת פרקים (`ChapterRail`) עם «חומר הקורס» ופרקים 1–6; בכל מודול topbar עם breadcrumbs (`Kiri Math › שם הקורס › פרק N · שם`) וכפתורי לשוניות (state, לא URL).
+
+### מעטפת האתר (`app/_site/`)
+
+שכבה שאינה תלויה בקורס מסוים: כל רכיב מקבל `CourseDefinition`. כולם server components, חוץ מקורא הרשימות: `NotesReader.tsx` ו-`NotesDialog.tsx` הם client components, ו-`NotesFrame`/`NotesToc` נטענים דרכם.
+
+| קובץ | תפקיד |
+|---|---|
+| `courseModel.ts` | טיפוסים (`CourseDefinition`, `CourseModule`, `NotesChapter`, `CourseResource`, `CourseSummary`, `Crumb`) ועזרים טהורים: `notesPageHref` (עמוד מודפס + היסט → `#page=`), `modulesForChapter`, `modulesForSection`, `sectionRangeLabel`, `courseCrumbs`, `moduleCrumbs`, `summarizeCourse`; `siteName`. בלי React |
+| `notesNavigation.ts` | ניווט טהור בתוך הרשימות: `NotesTarget` (שער / פרק / סעיף), `locateNotesTarget` (עמוד, כותרת, הסעיף הקודם והבא על פני כל הפרקים; פרק שהסעיף הראשון שלו מתחיל בעמוד הפרק מתנרמל לסעיף), `notesTargetFromData` (מתוך `data-notes-*`), `notesViewerSrc` (כתובת ה-iframe עם פרמטרי המציג), `notesLocationHref`. בלי React |
+| `useNotesReader.ts` | `useNotesReaderAvailable()` — `useSyncExternalStore` על `(min-width: 821px)`, המשלים של `max-width: 820px` ב-CSS; בשרת `false`. `notesTargetFromClick` — מיירט רק לחיצה שמאלית רגילה על קישור עם `data-notes-*` (Ctrl/Shift/Alt/Cmd ולחיצה אמצעית נשארים לדפדפן) |
+| `NotesFrame.tsx` | מסגרת הצפייה: שורת מיקום (פרק, עמוד, כותרת), הסעיף הקודם/הבא, מתג «תוכן העניינים» (אופציונלי), «פתיחה בלשונית חדשה», «הורדה», «סגירה» (אופציונלי), ו-iframe של מציג ה-PDF המובנה. `key={loadKey}` טוען את ה-iframe מחדש בכל מעבר, כי שינוי `#page=` לבדו לא מזיז את כל המציגים |
+| `NotesToc.tsx` | תוכן העניינים המלא: כרטיס לכל פרק (קישור לעמוד הפרק + קישור לעמוד שלו ברשימות) ו-`NotesSectionList`; `aria-current="location"` על היעד הפתוח |
+| `NotesReader.tsx` | הקורא שבפאנל «חומר הקורס»: תוכן העניינים בעמודה גוללת לצד `NotesFrame`, בגובה המסך. נפתח בעמוד השער; בחירה בתוכן העניינים מחליפה את העמוד במקום לפתוח לשונית. מתחת ל-821px אין iframe, ותוכן העניינים נשאר רשימת קישורים ללשונית חדשה |
+| `NotesDialog.tsx` | `NotesDialogHost`: עוטף פאנל פרק ומיירט את קישורי הרשימות שבו; פותח `NotesFrame` ב-`<dialog>` מקורי (`showModal()`: שכבה עליונה, Esc, החזרת focus לקישור). הסגירה קוראת ל-`close()` וה-state מתאפס ב-`onClose`, אחרת ה-focus לא חוזר |
+| `CourseMaterialsPanel.tsx` | פאנל החומר המלא: כרטיסי PDF (רשימות, סילבוס מורחב, דף נוסחאות) ו-`NotesReader` |
+| `ChapterPanel.tsx` | פאנל פרק בתוך `NotesDialogHost`: כותרת עם מספר וקישור לפרק ברשימות, כרטיסי המודולים (או מצב ריק), סעיפי הפרק, מעבר לפרק הקודם/הבא |
+| `NotesSectionList.tsx` | סעיפים: קישור לעמוד הסעיף ברשימות (`href` ללשונית חדשה + `data-notes-section` לקורא), תגיות המודולים שמכסים אותו, מספר עמוד |
+| `notesNavigation.test.ts` | 12 בדיקות: שער, מעבר בין סעיפים וחציית פרקים, קצוות, פרק עם מבוא / בלי מבוא / בלי סעיפים, יעד לא קיים, מעבר על כל 35 הסעיפים האמיתיים, פרסור `data-*`, התאמת עמוד ה-iframe לקישור ללשונית חדשה |
+| `CourseCard.tsx` | כרטיס קורס בדשבורד: קוד, שם, תיאור, מספר פרקים ומודולים |
+| `Breadcrumbs.tsx` | `nav.site-breadcrumbs`; כל תווית עטופה ב-`<bdi>` |
+| `BrandWordmark.tsx` | סמליל הטקסט «Kiri Math» (LTR) |
+
+### נתוני הקורס (`app/ode/`)
+
+| קובץ | תפקיד |
+|---|---|
+| `course.ts` | `odeCourse`: קוד, שם, תיאור, הרשימות, הפרקים, 4 מודולים (פרק, סעיפים, סטטוס, `href`) ו-3 משאבים |
+| `notesToc.ts` | **נוצר אוטומטית** מ-`main.toc` ע״י `scripts/sync-course-notes.ts`: 6 פרקים, 35 סעיפים, `notesPageOffset = 4`. לא עורכים ידנית |
+| `OdeChapterPage.tsx` | עמוד פרק משותף ל-`/ode/1..6`, וגם `odeChapterMetadata` / `odeModuleMetadata` |
+| `OdeModuleBreadcrumbs.tsx` | ה-breadcrumbs שבתוך ה-topbar של ארבעת המודולים |
+| `course.test.ts` | 16 בדיקות: מספור פרקים וסעיפים, עמודים לא יורדים, קובץ route לכל פרק ומודול, סעיפי מודול שייכים לפרק שלו, breadcrumbs, היסט העמודים, קובצי ה-PDF קיימים |
+| `../courses.ts` | רשימת הקורסים שמוצגת בדשבורד (`summarizeCourse(odeCourse)`) |
+
+שיוך המודולים לסעיפי הרשימות:
+
+| מודול | פרק | סעיפים | סטטוס |
+|---|---|---|---|
+| סדרות וטורי פונקציות | 1 | 1.1–1.3 | בבנייה |
+| משוואות ליניאריות הומוגניות | 4 | 4.2–4.3 | בבנייה |
+| מקדמים קבועים ומשוואות אוילר | 4 | 4.4–4.6 | פעיל |
+| מישור הפאזה | 5 | 5.2–5.3 | פעיל |
+
+**עמודי הרשימות:** `main.toc` שומר את מספרי העמודים המודפסים, ו-`#page=` מצפה לאינדקס הפיזי. ההפרש (4 עמודי פתיחה) נקרא מטבלת `/PageLabels` שב-PDF עצמו בזמן הסנכרון, ו-`notesPageHref` מוסיף אותו.
+
+**קורא הרשימות:** במסך רחב (מ-821px) הרשימות נפתחות בתוך האתר: בפאנל «חומר הקורס» בקורא הקבוע, ובעמודי הפרקים בחלון `<dialog>`. זה מציג ה-PDF של הדפדפן בתוך iframe, בלי ספרייה. `notesViewerSrc` מוסיף לכתובת `view=FitH&navpanes=0&toolbar=0` (Chrome/Edge) ו-`zoom=page-width&pagemode=none` (PDF.js של Firefox); כל מציג מתעלם מהפרמטרים שאינו מכיר. בכל הקישורים ה-`href` נשאר הקישור ללשונית חדשה, כך שבלי JavaScript, במסך צר או בלחיצה עם מקש, ההתנהגות היא של שלב 1.
+
+### מה עדיין חסר במעטפת
+
+- קישורי «לקריאה ברשימות» מתוך המודולים עצמם, אל הסעיפים שהם מכסים.
+- עיצוב המציג המובנה מוגבל: ב-Firefox סרגל הכלים של PDF.js נשאר, ואין שליטה בצבעי המציג. אם זה לא יספיק, השלב הבא הוא מציג מבוסס pdf.js (תלות חדשה).
+- רקעים ואיורים לכל קורס, אנימציית הכניסה לקורס («משוואות דיפרנציאליות רגילות») ולוגו.
+- התאמת המודולים לגבולות הסעיפים ברשימות, ומודולים לפרקים 2, 3 ו-6.
+- הרשמה והתחברות: הדשבורד מציג כרגע את כל הקורסים.
 
 ---
 
 ## 3. מודול מישור הפאזה
 
-**קובץ מרכזי:** `app/phase-plane-module.tsx` — קובץ מונוליטי אחד (~5,400 שורות) המכיל את כל הלוגיקה, הציור וה-UI.
+**קובץ מרכזי:** `app/phase-plane-module.tsx` — קובץ מונוליטי אחד (~5,400 שורות) המכיל את כל הלוגיקה, הציור וה-UI. **נתיב:** `/ode/5/phase-plane`.
 
 ### לשוניות
 
@@ -100,7 +167,7 @@ Canvas 2D מותאם DPR; אינטגרציית RK4 למסלולים; פונקצ�
 
 ## 4. מודול מקדמים קבועים ומשוואות אוילר
 
-**תיקייה:** `app/constant-coefficients-euler/` — מודול שכבתי (~30 קומפוננטות + שכבות `math/` ו-`practice/`).
+**תיקייה:** `app/constant-coefficients-euler/` — מודול שכבתי (~30 קומפוננטות + שכבות `math/` ו-`practice/`). מעטפת: `ConstantCoefficientsEulerModule.tsx`; **נתיב:** `/ode/4/constant-coefficients-euler`.
 
 ### לשוניות
 
@@ -112,16 +179,16 @@ Canvas 2D מותאם DPR; אינטגרציית RK4 למסלולים; פונקצ�
 
 ### מצבי תרגול
 
-1. **מקדמים קבועים** — `ConstantCoefficientFullPractice`: תרגיל רב־שלבי (פולינום → שורשים → בסיס → תנאי התחלה → יציבות), עם נעילת שלבים, חשיפת פתרון וסטטיסטיקות.
-2. **משוואות אוילר** — `EulerTransformationPractice`: מקדמי אוילר → פולינום/משוואה מתמרת → שורשים → בסיס ב-u → בסיס ב-y → יציבות.
-3. **שחזור משוואה** — `EquationReconstructionPractice`: בהינתן פתרונות (ואולי התנהגות) → ישימות → שורשים מאולצים / משפחה חד־פרמטרית / משפחה דו־פרמטרית / בלתי אפשרי.
+1. **מקדמים קבועים** — `ConstantCoefficientFullPractice`: תרגיל רב־שלבי (פולינום → שורשים → בסיס → תנאי התחלה → יציבות), עם נעילת שלבים, חשיפת פתרון וסטטיסטיקות. תנאי התחלה דלוקים כברירת מחדל, ומוגבלים לדרגה ≤ 4 (`MAX_INITIAL_CONDITION_DEGREE`).
+2. **משוואות אוילר** — `EulerTransformationPractice`: מקדמי אוילר → פולינום/משוואה מתמרת → שורשים → בסיס ב-u → בסיס ב-y → יציבות. **אין** שלב תנאי התחלה — בחירה מכוונת: הצינור כבר שישה שלבים, והנגזרת הקיימת (`basisTokenDerivativeAtZero`) קשיחה ל-\(x_0=0\), מחוץ לתחום \(x>0\). תרגול בעיית קושי נשאר במקדמים קבועים (ראו `docs/plans/euler-initial-conditions.md`).
+3. **שחזור משוואה** — `EquationReconstructionPractice`: בהינתן פתרונות (ואולי התנהגות) → ישימות → שורשים מאולצים / משפחה חד־פרמטרית / משפחה דו־פרמטרית / בלתי אפשרי. שבב «משפחה דו־פרמטרית» מוצג רק בסדר 3 וכאשר הקושי אינו `קל` (`reconstructionCaseFilterOptions`).
 
 ### קומפוננטות (`components/`)
 
 | קובץ | תפקיד |
 |---|---|
 | `MathText.tsx`, `DisplayMath.tsx` | רינדור KaTeX inline/block (ראו §7) |
-| `StepCard.tsx`, `PracticeStats.tsx` | כרטיס שלב נעול/פתוח; תצוגת רצף ודיוק |
+| `StepCard.tsx`, `PracticeStats.tsx` | כרטיס שלב נעול/פתוח; חמשת מספרי הסשן (`שאלות` = שאלות שנפתרו, לא שהוצגו) |
 | `RootGroupEditor.tsx`, `PracticeRootGroupEditor.tsx` | עריכת קבוצות שורשים (הרכבה / תרגול) |
 | `PolynomialCoefficientEditor.tsx`, `DifferentialEquationCoefficientEditor.tsx`, `EulerCoefficientEditor.tsx`, `InitialCoefficientEditor.tsx` | עורכי מקדמים לסוגי הצגה שונים |
 | `InitialConditionsStage.tsx`, `StabilityStage.tsx` | שלבי תנאי התחלה ויציבות |
@@ -151,12 +218,25 @@ Canvas 2D מותאם DPR; אינטגרציית RK4 למסלולים; פונקצ�
 | `random.ts` | `SeededRandom`, `mixSeed` — **משותף גם למודול ההומוגניות** |
 | `questionGeneration.ts`, `eulerQuestionGeneration.ts`, `initialConditionGeneration.ts` | יצירת שאלות לכל מצב |
 | `answerEvaluation.ts`, `polynomialEvaluation.ts`, `rootEvaluation.ts`, `initialConditionEvaluation.ts`, `stabilityEvaluation.ts` | בדיקת תשובות לכל שלב |
-| `basisComposer.ts`, `rootDisplay.ts`, `stats.ts` | עזרי הרכבה, תצוגה וסטטיסטיקות |
-| `reconstructionQuestionGeneration.ts`, `reconstructionEvaluation.ts` | תזמור יצירה והערכה לשחזור |
-| `reconstruction/order2Generation.ts`, `order3Generation.ts` | אינסטנציאציה משוקללת של תבניות |
-| `reconstruction/templates/shared.ts`, `order2.ts` (34 תבניות), `order3.ts` (36 תבניות) | מאגרי תבניות שאלה מבוקרות עם מסננים לפי קושי וסוג |
+| `basisComposer.ts`, `rootDisplay.ts`, `stats.ts` | עזרי הרכבה, תצוגה, וסטטיסטיקות סשן (`answered` עולה בהשלמה או בנטישה אחרי שלב נכון; לא במount ולא בשבבים) |
+| `reconstructionQuestionGeneration.ts`, `reconstructionEvaluation.ts` | תזמור יצירה והערכה לשחזור; `buildReconstructionQuestion` מנתב לפי `(equationKind, order)` |
+| `reconstruction/order2Generation.ts`, `order3Generation.ts` | אינסטנציאציה משוקללת של תבניות `constant-coefficients` בסדר 2 ו-3 |
+| `reconstruction/templates/shared.ts`, `order2.ts` (34 תבניות), `order3.ts` (36 תבניות) | מאגרי תבניות ל-CC סדר 2 ו-3 בלבד |
 
-**זרימת יצירת שאלת שחזור:** בחירת תבנית לפי סדר/קושי/סוג → דגימת פרמטרים → ניתוח עם `analyzeReconstruction` → fallback לגנרטור legacy אם אין תבנית מתאימה.
+**ניתוב גנרטור שחזור** (`buildReconstructionQuestion`): מאגרי 34+36 התבניות מכסים רק `constant-coefficients` בסדר 2 ו-3. כל צירוף אחר — `euler` בכל סדר, ו-`constant-coefficients` בסדר 4–6 — עובר ל-`tryGenerateLegacy` ב-100% מהשאלות; זו לא נפילת קצה «אם אין תבנית מתאימה».
+
+| `equationKind` | `order` | גנרטור |
+|---|---|---|
+| `constant-coefficients` | 2 | `buildOrder2ConstantCoefficientQuestion` (`order2.ts`, 34 תבניות) |
+| `constant-coefficients` | 3 | `buildOrder3ConstantCoefficientQuestion` (`order3.ts`, 36 תבניות) |
+| `constant-coefficients` | 4–6 | `tryGenerateLegacy` |
+| `euler` | 2–6 | `tryGenerateLegacy` |
+
+**זרימת יצירת שאלת שחזור (נתיב תבניות):** סינון לפי סוג/קושי → דגימת פרמטרים → ניתוח עם `analyzeReconstruction`. אין נפילה משם ל-legacy. אם כל ניסיונות `tryGenerateLegacy` נכשלים נשאר `fallbackQuestion`.
+
+**סטטיסטיקות תרגול** (`PracticeStats` / `stats.ts`): `שאלות` סופר שאלות שנפתרו — השלמה עצמאית או בעזרת «הצג תשובה», או נטישה אחרי שלב שהיה פעם `correct`. שלוש החלפות קושי בלי בדיקה לא מזיזות את המספרים. `completionKind` נשאר reveal מול לא-reveal; ניסיונות שגויים לא מורידים. בדיקה: `practice/stats.test.ts`.
+
+`templateMatchesDifficulty` ו-`order3TemplateMatchesDifficulty` בלעדיים (`template.difficulty === session`), באותה סמנטיקה כמו `generateRootGroups` במקדמים קבועים ובאוילר: שבב `קל` / `בינוני` / `קשה` דוגם רק תבניות עם אותו תג. התא הריק היחיד — סדר 3 × «משפחה דו־פרמטרית» × `קל` — אינו מוצג ב-UI (`reconstructionCaseFilterOptions`). בסשן `קשה` עם `caseFilter=mixed`, כל הדגימות בסדר 2 ובסדר 3 מגיעות מתבנית `hard` (לפני השינוי: 15.1% ו-19.3%).
 
 ### קבצי תשתית
 
@@ -168,7 +248,7 @@ Canvas 2D מותאם DPR; אינטגרציית RK4 למסלולים; פונקצ�
 
 ## 5. מודול משוואות ליניאריות הומוגניות
 
-**תיקייה:** `app/linear-homogeneous/` — מודול שכבתי (components / math / practice), במבנה דומה למודול אוילר. מסומן בעמוד הבית כ«מודול בבנייה».
+**תיקייה:** `app/linear-homogeneous/` — מודול שכבתי (components / math / practice), במבנה דומה למודול אוילר. מעטפת: `LinearHomogeneousModule.tsx`; **נתיב:** `/ode/4/linear-homogeneous`. מסומן בעמוד פרק 4 כ«מודול בבנייה».
 
 המודול עוסק במשוואה המנורמלת
 `y^{(n)}+a_{n-1}(x)y^{(n-1)}+⋯+a_0(x)y=0`
@@ -283,11 +363,11 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 ## 6. מודול סדרות וטורי פונקציות
 
-**תיקייה:** `app/function-sequences-series/` — מודול שכבתי במבנה דומה למודולי אוילר וההומוגניות. מסומן בעמוד הבית כ«מודול בבנייה».
+**תיקייה:** `app/function-sequences-series/` — מודול שכבתי במבנה דומה למודולי אוילר וההומוגניות. **נתיב:** `/ode/1/function-sequences-series`. מסומן בעמוד פרק 1 כ«מודול בבנייה».
 
 המודול עוסק בחלק המתמטי הפותח של הקורס: סדרות פונקציות, טורי פונקציות, טורי חזקות וטורי טיילור.
 
-`page.tsx` הוא מעטפת דקה שטוענת את `FunctionSequencesSeriesModule.tsx`. המעטפת אחראית ל-layout, ל-topbar ולמצב הלשוניות בלבד (`useState` מקומי; רענון מחזיר ללשונית הראשונה). אין Context, localStorage או פרמטרים ב-URL.
+המעטפת היא `FunctionSequencesSeriesModule.tsx`, שנטענת מ-`app/ode/1/function-sequences-series/page.tsx`. המעטפת אחראית ל-layout, ל-topbar ולמצב הלשוניות בלבד (`useState` מקומי; רענון מחזיר ללשונית הראשונה). אין Context, localStorage או פרמטרים ב-URL.
 
 ### לשוניות
 
@@ -350,7 +430,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 ## 8. מערכת העיצוב
 
-**קובץ יחיד:** `app/globals.css` (~3,560 שורות) — כל העיצוב מבוסס מחלקות CSS מותאמות (Tailwind מיובא אך כמעט לא בשימוש utility). **Theme בהיר בלבד** — אין dark mode.
+**קובץ יחיד:** `app/globals.css` (~4,480 שורות) — כל העיצוב מבוסס מחלקות CSS מותאמות (Tailwind מיובא אך כמעט לא בשימוש utility). **Theme בהיר בלבד** — אין dark mode.
 
 ### שפה עיצובית: «מחברת נייר»
 
@@ -361,7 +441,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 | משתנה | ערך | תפקיד |
 |---|---|---|
 | `--paper` | `#fbf7ed` | רקע העמוד והקנבס (קרם) |
-| `--paper-deep` | `#efe4cf` | נייר עמוק יותר (שמור; אין שימוש עדיין) |
+| `--paper-deep` | `#efe4cf` | נייר עמוק יותר: רקע אזור הצפייה בקורא הרשימות (`.notes-frame-viewer`) |
 | `--ink` | `#252b33` | טקסט ראשי |
 | `--muted` | `#6f736f` | תוויות משניות |
 | `--line` | `rgba(37,43,51,0.16)` | מסגרות |
@@ -407,7 +487,8 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 - **פאנלים:** `.control-panel` / `.canvas-panel` / `.analysis-panel` — רקע `--panel`, רדיוס 8px, `backdrop-filter: blur(14px)`, הצללת `--shadow`. כרטיסים מקוננים: `.panel-section`, `.result-card` (ו-`.result-card.primary` עם גרדיאנט כחול להדגשת הסיווג).
 - **לשוניות משנה:** `.segmented-control`, `.practice-mode-nav`.
-- **עמוד הבית:** `.course-module-card.active` מול `.course-module-card.construction`.
+- **מעטפת האתר:** דשבורד `.dashboard` עם `.course-card`; `.course-shell-body` — רשת `minmax(230px, 290px) minmax(0, 1fr)` של `nav.chapter-rail` (sticky) ו-`.course-panel`; בפאנלים `.resource-grid` (3 עמודות), `.notes-toc` ו-`.notes-section` (רשת: קישור · תגיות · עמוד, עם `.module-tag`), `.course-module-card.active` מול `.construction` בעמודי הפרקים, ו-`nav.chapter-pager`. `nav.site-breadcrumbs` מופיע בכל ה-topbars; המפריד `›` מתהפך אוטומטית ב-RTL.
+- **קורא הרשימות:** `.notes-reader` — רשת `minmax(240px, 0.42fr) minmax(0, 1fr)` בגובה `clamp(560px, 100vh − 44px, 1100px)`: `.notes-reader-toc` (עמודה גוללת; בתוכה הסעיף שורה אחת בלי עמודת העמוד, והתגיות בשורה משלהן) ו-`.notes-frame` (סרגל `.notes-frame-bar` עם `.notes-frame-button` ואזור צפייה על `--paper-deep`). `.toc-hidden` מקפל לעמודה אחת. היעד הפתוח מסומן ב-`--blue-soft` דרך `aria-current="location"`.
 
 ### דפוסי רכיבים
 
@@ -416,15 +497,15 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 - **קלט נוסחה חופשית** (מודול הומוגניות): `.formula-input-label` + `.formula-preview` — שדה LTR עם תצוגת KaTeX חיה מתחתיו.
 - **משוב תרגול:** `.quiz-option.correct` / `.wrong` (ירוק/rust), `.coefficient-correct` / `.coefficient-incorrect`, `.practice-step-card.status-*`, השלמה עצמאית (ירוק) מול נעזרת (ענבר).
 - **מקרא קנבס:** `.legend-item` עם דוגמיות צבע — ישרים עצמיים `#2c456b`, וקטורים עצמיים `#83aff0`, מסלולים `#ff9d00`, שדה `rgba(35,87,137,0.32)`.
-- **מודלים:** `.modal-backdrop` (דיו 22% + blur) + `.sample-modal`.
+- **מודלים:** `.modal-backdrop` (דיו 22% + blur) + `.sample-modal`. חלון הרשימות בעמודי הפרקים הוא `<dialog>` מקורי, `.notes-dialog`, עם `::backdrop` באותם ערכים; בזמן שהוא פתוח `html:has(.notes-dialog[open])` נועל את גלילת העמוד.
 
 ### רספונסיביות
 
 | Breakpoint | אפקט |
 |---|---|
-| ≤1180px | רשתות 3 עמודות → 2; פאנל הניתוח נפרס לרוחב |
+| ≤1180px | רשתות 3 עמודות → 2; פאנל הניתוח נפרס לרוחב; מסילת הפרקים הופכת לרצועה מעל הפאנל: «חומר הקורס» והפאנל הפעיל עם תווית, שאר הפרקים שבבי מספר (התווית נשארת לקוראי מסך וב-`title`) |
 | ≤960px | `.stability-classification-grid` → שתי עמודות |
-| ≤820px | הכול לעמודה אחת; topbar נערם; קנבס בגובה מוקטן |
+| ≤820px | הכול לעמודה אחת; topbar נערם; קנבס בגובה מוקטן; `.resource-grid` לעמודה אחת; תגיות הסעיפים יורדות לשורה משלהן; `chapter-pager` נערם; קורא הרשימות מצטמצם לתוכן העניינים בלבד (בלי iframe; הקישורים ללשונית חדשה) |
 | ≤680px / ≤640px | רשתות בסיס ויציבות → עמודה אחת |
 | ≥760px | `.lambda-option-list` → שלוש עמודות (שאילתת `min-width` היחידה בקובץ) |
 
@@ -438,8 +519,9 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 ## 9. תשתית ופריסה
 
-- **פיתוח:** `npm run dev` (vinext), `npm run build` (next build).
-- **בדיקות:** `npm test` (vitest) — כרגע רק `app/linear-homogeneous/math/*.test.ts`.
+- **פיתוח:** `npm run dev` (vinext), `npm run build` (`next build --webpack`).
+- **בדיקות:** `npm test` (vitest) — `app/constant-coefficients-euler/{math,practice}/*.test.ts`, `app/linear-homogeneous/math/*.test.ts`, `app/ode/course.test.ts`, `app/_site/notesNavigation.test.ts`.
+- **סנכרון הרשימות:** `npx tsx scripts/sync-course-notes.ts [תיקיית הרשימות]` (ברירת מחדל: שתי רמות מעל המאגר), להרצה אחרי כל קומפילציה של הרשימות. הסקריפט מפרסר את `main.toc`, מנרמל כותרות (גרשיים, מקפים; נכשל אם נשאר LaTeX), בודק שהסעיפים שייכים לפרקים ושהעמודים לא יורדים, קורא את היסט העמודים מ-`/PageLabels`, כותב את `app/ode/notesToc.ts` ומעתיק את `main.pdf`, `ExtendedSyllabus_winter2026.pdf` ו-`FormulaSheet.pdf` ל-`public/courses/ode/`.
 - **Worker:** `worker/index.ts` — handler ל-Cloudflare Workers + אופטימיזציית תמונות.
 - **DB:** `db/schema.ts` ריק בכוונה; `db/index.ts` מצפה ל-binding בשם `DB` (D1). לא בשימוש כרגע.
 - **סקריפטי אימות** (`scripts/`, לא מחוברים ל-package.json — מריצים ידנית; שייכים למודול אוילר):
@@ -460,8 +542,10 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 ## 10. הערות ארכיטקטוניות
 
-- **שני סגנונות מבניים:** מישור הפאזה הוא קובץ מונוליטי אחד; מודולי אוילר, ההומוגניות וסדרות הפונקציות בנויים בשכבות (components / math / practice לפי הצורך). מודול סדרות הפונקציות מפריד במפורש בין `page.tsx` הדק לבין `FunctionSequencesSeriesModule.tsx`. כל פיצול עתידי של מישור הפאזה כדאי שילך בכיוון הזה.
+- **שני סגנונות מבניים:** מישור הפאזה הוא קובץ מונוליטי אחד; מודולי אוילר, ההומוגניות וסדרות הפונקציות בנויים בשכבות (components / math / practice לפי הצורך). בשלושתם המעטפת היא `<Name>Module.tsx` (`"use client"`), וה-`page.tsx` שטוען אותה יושב תחת `app/ode/N/`. כל פיצול עתידי של מישור הפאזה כדאי שילך בכיוון הזה.
+- **מבנה רב־קורסי:** `app/_site/` לא מכיר קורס מסוים. קורס הוא תיקייה עם `course.ts`, תוכן עניינים שנוצר מהרשימות, ונתיבי פרקים ומודולים; הוא נרשם ב-`app/courses.ts`. הנתיבים שטוחים ומפורשים (תיקייה לכל פרק ולכל מודול), ו-`course.test.ts` מוודא שהרישום והתיקיות לא נפרדים.
+- **קורא הרשימות משודרג, לא מחליף:** כל קישור לרשימות הוא קודם כול קישור רגיל ללשונית חדשה, והקורא רק מיירט אותו. לכן אין מצב שבו הרשימות לא נגישות. ה-breakpoint של 820px קיים פעמיים, ב-CSS וב-`useNotesReaderAvailable`; מי שמשנה אחד צריך לשנות את השני.
 - **כפילות מכוונת:** ל-`MathText`/`DisplayMath`/`mathTypography` יש ארבע גרסאות (פאזה מקומית; עותק זהה באוילר, בהומוגניות ובסדרות הפונקציות). אין עדיין חבילת UI מתמטי משותפת.
 - **שתי פרדיגמות מתמטיות:** מודולי הפאזה ואוילר עובדים עם מבנים סגורים (מטריצות 2×2, שורשים, פולינומים). מודול ההומוגניות מפרסר נוסחאות חופשיות ומפעיל nerdamer — עם מדיניות זהירות סביב `e`/`π` ופישוט לתצוגה מול אימות. מודול סדרות הפונקציות עדיין בלי שכבת מתמטיקה אלגוריתמית.
-- **שיתוף נקודתי:** הגנרטור של ההשלמה למערכת יסודית מייבא `SeededRandom` ממודול אוילר. זה הקשר היחיד בין המודולים בקוד. מודול סדרות הפונקציות מתוכנן למחזר את אותו `SeededRandom` כשתיבנה שכבת `practice/`.
+- **שיתוף נקודתי:** הגנרטור של ההשלמה למערכת יסודית מייבא `SeededRandom` ממודול אוילר. זה הקשר היחיד בין המודולים בקוד. מודול סדרות הפונקציות מתוכנן למחזר את אותו `SeededRandom` כשתיבנה שכבת `practice/`. בנוסף, ארבעת המודולים מייבאים את `app/ode/OdeModuleBreadcrumbs` — תלות בשכבת הקורס, לא במודול אחר. מודול שישותף בעתיד בין קורסים יצטרך לקבל את ה-breadcrumbs מבחוץ.
 - **ללא persistence:** סטטיסטיקות תרגול חיות בזיכרון בלבד ומתאפסות ברענון — בחירה מודעת בשלב זה.

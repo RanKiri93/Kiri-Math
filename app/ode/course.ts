@@ -1,0 +1,73 @@
+import { courseAssetHref, type CourseDefinition } from "../_site/courseModel";
+import { notesChapters, notesPageOffset } from "./notesToc";
+
+export const odeCourse: CourseDefinition = {
+  slug: "ode",
+  code: "104136",
+  title: "משוואות דיפרנציאליות רגילות",
+  tagline: "סדרות וטורי פונקציות, משוואות מסדר ראשון ומסדר גבוה, מערכות ותורת שטורם־ליוביל.",
+  href: "/ode",
+  notes: {
+    href: courseAssetHref("ode", "notes.pdf"),
+    pageOffset: notesPageOffset,
+  },
+  chapters: notesChapters,
+  modules: [
+    {
+      id: "function-sequences-series",
+      chapter: 1,
+      sections: ["1.1", "1.2", "1.3"],
+      title: "סדרות וטורי פונקציות",
+      description: "התכנסות נקודתית ובמידה שווה, טורי פונקציות, טורי חזקות וטורי טיילור.",
+      status: "construction",
+      href: "/ode/1/function-sequences-series",
+    },
+    {
+      id: "linear-homogeneous",
+      chapter: 4,
+      sections: ["4.2", "4.3"],
+      title: "משוואות ליניאריות הומוגניות",
+      description: "מרחב הפתרונות כמרחב וקטורי, וורונסקיאן ובסיסים, הרכבת משוואה מתוך בסיס נתון והורדת סדר.",
+      status: "construction",
+      href: "/ode/4/linear-homogeneous",
+    },
+    {
+      id: "constant-coefficients-euler",
+      chapter: 4,
+      sections: ["4.4", "4.5", "4.6"],
+      title: "משוואות במקדמים קבועים ומשוואות אוילר",
+      description: "פולינומים אופייניים, הרכבת משוואות ובסיסים, תרגול, מעבר לאוילר, תנאי התחלה ויציבות.",
+      status: "active",
+      href: "/ode/4/constant-coefficients-euler",
+    },
+    {
+      id: "phase-plane",
+      chapter: 5,
+      sections: ["5.2", "5.3"],
+      title: "מישור הפאזה",
+      description: "מעבדה אינטראקטיבית למערכות ליניאריות דו־ממדיות, כולל סיווג תמונות והרכבת מטריצות.",
+      status: "active",
+      href: "/ode/5/phase-plane",
+    },
+  ],
+  resources: [
+    {
+      id: "notes",
+      title: "רשימות הקורס",
+      description: "הרשימות המלאות של הקורס, כל ששת הפרקים בקובץ אחד.",
+      href: courseAssetHref("ode", "notes.pdf"),
+    },
+    {
+      id: "syllabus",
+      title: "סילבוס מורחב",
+      description: "תוכנית הקורס המפורטת, לפי הרצאות ותרגולים.",
+      href: courseAssetHref("ode", "syllabus.pdf"),
+    },
+    {
+      id: "formula-sheet",
+      title: "דף נוסחאות",
+      description: "הנוסחאות המרכזיות של הקורס.",
+      href: courseAssetHref("ode", "formula-sheet.pdf"),
+    },
+  ],
+};

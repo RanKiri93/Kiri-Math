@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { OdeModuleBreadcrumbs } from "./ode/OdeModuleBreadcrumbs";
 import katex from "katex";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { InlineMath } from "react-katex";
@@ -5170,13 +5170,10 @@ export default function PhasePlaneModule() {
     <main className="app-shell" dir="rtl">
       <header className="topbar">
         <div>
-          <p className="course-kicker">104136 · משוואות דיפרנציאליות רגילות</p>
+          <OdeModuleBreadcrumbs moduleId="phase-plane" />
           <h1>מישור הפאזה</h1>
         </div>
-        <nav aria-label="ניווט באתר">
-          <Link className="module-pill" href="/">
-            עמוד הבית
-          </Link>
+        <nav aria-label="לשוניות המודול">
           <button
             className={`module-pill ${activeTab === "phase-intro" ? "active" : ""}`}
             type="button"

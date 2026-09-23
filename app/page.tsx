@@ -1,28 +1,23 @@
-import Link from "next/link";
+import { BrandWordmark } from "./_site/BrandWordmark";
+import { CourseCard } from "./_site/CourseCard";
+import { courses } from "./courses";
 
 export default function Home() {
   return (
-    <main className="app-shell course-home" dir="rtl">
-      <header className="course-hero">
-        <p className="course-kicker">104136 · משוואות דיפרנציאליות רגילות</p>
-        <h1>סביבת לימוד אינטראקטיבית במד״ר</h1>
-        <p>
-          אתר הקורס נבנה כקבוצת מודולים קטנים: הסבר תיאורטי קצר, חקירה אינטראקטיבית, ודוגמאות שאפשר לשנות בזמן אמת.
-        </p>
+    <main className="app-shell dashboard" dir="rtl">
+      <header className="dashboard-header">
+        <BrandWordmark />
       </header>
 
-      <section className="course-module-grid" aria-label="מודולי לימוד">
-        <Link className="course-module-card active" href="/phase-plane">
-          <span>מודול פעיל</span>
-          <h2>מישור פאזה</h2>
-          <p>מעבדה אינטראקטיבית למערכות ליניאריות דו־ממדיות, כולל סיווג תמונות והרכבת מטריצות.</p>
-        </Link>
+      <section className="dashboard-hero">
+        <h1>הקורסים שלי</h1>
+        <p>בחרו קורס כדי להיכנס לרשימות, לפרקים ולפעילויות האינטראקטיביות.</p>
+      </section>
 
-        <Link className="course-module-card active" href="/constant-coefficients-euler">
-          <span>מודול פעיל</span>
-          <h2>משוואות במקדמים קבועים ומשוואות אוילר</h2>
-          <p>פולינומים אופייניים, הרכבת משוואות ובסיסים, תרגול, מעבר לאוילר, תנאי התחלה ויציבות.</p>
-        </Link>
+      <section className="dashboard-course-grid" aria-label="הקורסים שלי">
+        {courses.map((course) => (
+          <CourseCard key={course.slug} course={course} />
+        ))}
       </section>
     </main>
   );

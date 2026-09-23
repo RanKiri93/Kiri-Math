@@ -1,7 +1,5 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import PhasePlaneModule from "../phase-plane-module";
-
-export default function PhasePlanePage() {
-  return <PhasePlaneModule />;
+export default function PhasePlaneRedirect() {
+  redirect("/ode/5/phase-plane");
 }
