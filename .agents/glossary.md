@@ -135,6 +135,7 @@ sections (סעיפים) of its lecture notes; the modules live inside chapters.
 | Module status | מודול פעיל / מודול בבנייה |
 | Interactive modules (chapter section heading) | מודולים אינטראקטיביים |
 | Open the chapter in the notes | פתיחת הפרק ברשימות |
+| Notes sections a module covers (intro heading) | לקריאה ברשימות |
 | Previous / next chapter | הפרק הקודם / הפרק הבא |
 | Breadcrumbs `aria-label` | מיקום באתר |
 | Chapter rail `aria-label` | פרקי הקורס |

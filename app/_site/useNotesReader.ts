@@ -1,4 +1,5 @@
 import { useSyncExternalStore, type MouseEvent } from "react";
+import { isPlainLeftClick } from "./clicks";
 import { notesTargetFromData, type NotesTarget } from "./notesNavigation";
 
 // Complement of the ≤820px breakpoint in globals.css, below which the reader is hidden and
@@ -21,7 +22,7 @@ export function useNotesReaderAvailable(): boolean {
 
 /** The notes target of a plain left click on a notes link; modifier clicks keep their browser meaning. */
 export function notesTargetFromClick(event: MouseEvent<HTMLElement>): NotesTarget | null {
-  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+  if (!isPlainLeftClick(event)) {
     return null;
   }
   if (!(event.target instanceof Element)) {

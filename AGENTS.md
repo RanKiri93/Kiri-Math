@@ -38,7 +38,7 @@ Before declaring any code change complete, run `npm test` and `npm run typecheck
 app/
   page.tsx                        dashboard «הקורסים שלי», one card per course
   layout.tsx                      lang="he" dir="rtl", fonts, KaTeX CSS, site title
-  globals.css                     THE ENTIRE DESIGN SYSTEM (~4,480 lines)
+  globals.css                     THE ENTIRE DESIGN SYSTEM (~4,808 lines)
   courses.ts                      registry of courses shown on the dashboard
   _site/                          course-agnostic site shell: model, rail, panels, breadcrumbs
   ode/                            the 104136 course: course.ts, notesToc.ts, chapter

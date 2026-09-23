@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { OdeNotesSections } from "../../ode/OdeNotesSections";
 import { MathText } from "./MathText";
 
 type IntroTopic = {
@@ -378,6 +379,8 @@ export function LinearHomogeneousIntro() {
           במקרה של משוואות הומוגניות, <MathText math="f(x)=0" /> ולכן רציפות המקדמים היא תנאי מינימלי
           לכך שלכל תנאי התחלה יהיה פתרון, ושכל פתרון יהיה מוגדר בכל הקטע/קרן <MathText math="I" />.
         </p>
+
+        <OdeNotesSections moduleId="linear-homogeneous" />
 
         <div className="intro-expansion-list">
           <details className="intro-expansion">

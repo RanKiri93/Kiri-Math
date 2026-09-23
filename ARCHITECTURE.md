@@ -54,14 +54,14 @@
 | UI | React 19, TypeScript |
 | מתמטיקה | KaTeX + react-katex |
 | אלגברה סימבולית | **nerdamer** 1.1.13 — בשימוש במודול הליניארי ההומוגני בלבד |
-| בדיקות | **vitest** — `npm test`; במודול אוילר, במודול הליניארי ההומוגני, בנתוני הקורס (`app/ode/course.test.ts`) ובניווט הרשימות (`app/_site/notesNavigation.test.ts`) |
+| בדיקות | **vitest** — `npm test`; במודול אוילר, במודול הליניארי ההומוגני, בנתוני הקורס (`app/ode/course.test.ts`), בניווט הרשימות (`app/_site/notesNavigation.test.ts`), במנוע האיורים (`app/_site/art/art.test.ts`, `app/ode/art.test.ts`) ובזיהוי לחיצה (`app/_site/clicks.test.ts`) |
 | פונט | Assistant (משקלים 400/600/700/800) דרך `@fontsource` |
 | פריסה | Cloudflare Workers (`worker/index.ts`), wrangler |
 | DB (אופציונלי) | Drizzle + D1 — הסכמה ריקה, לא בשימוש |
 
 ### ניהול State
 
-React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **אין** Context, Redux, localStorage או פרמטרים ב-URL. קורסים, פרקים ומודולים הם נתיבים; לשוניות בתוך מודול מנוהלות ב-state פנימי (לא בניתוב). עמודי הקורס והפרקים הם server components; ה-state היחיד בהם שייך לקורא הרשימות (הסעיף הפתוח), והוא לא נשמר בכתובת. שאלות תרגול נוצרות עם RNG זרוע (seeded) לשחזוריות. מודול ההומוגניות הליניארית **משתמש מחדש** ב-`SeededRandom` של מודול אוילר.
+React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **אין** Context, Redux, localStorage או פרמטרים ב-URL. קורסים, פרקים ומודולים הם נתיבים; לשוניות בתוך מודול מנוהלות ב-state פנימי (לא בניתוב). עמודי הקורס והפרקים הם server components; ה-state היחיד בהם שייך לקורא הרשימות (הסעיף הפתוח), והוא לא נשמר בכתובת. מעבר הכניסה לקורס חי ב-`CourseEntry` על הדשבורד בלבד, ונעלם עם הניווט. שאלות תרגול נוצרות עם RNG זרוע (seeded) לשחזוריות. מודול ההומוגניות הליניארית **משתמש מחדש** ב-`SeededRandom` של מודול אוילר.
 
 ---
 
@@ -69,7 +69,7 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 
 | Route | קובץ | תפקיד |
 |---|---|---|
-| `/` | `app/page.tsx` | «הקורסים שלי»: סמליל `BrandWordmark` + רשת `CourseCard` מתוך `app/courses.ts` |
+| `/` | `app/page.tsx` | «הקורסים שלי»: סמליל `BrandWordmark` + רשת `CourseCard` מתוך `app/courses.ts`. לחיצה שמאלית רגילה על הכרטיס מפעילה את מעבר הכניסה (`CourseEntry`) ואז `router.push` |
 | `/ode` | `app/ode/page.tsx` | `CourseShell` עם פאנל «חומר הקורס» (`CourseMaterialsPanel`) |
 | `/ode/1` … `/ode/6` | `app/ode/{1..6}/page.tsx` | עמוד פרק דרך `OdeChapterPage`: `CourseShell` + `ChapterPanel` |
 | `/ode/5/phase-plane` | `app/ode/5/phase-plane/page.tsx` | טוען את `PhasePlaneModule` |
@@ -86,22 +86,29 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 
 ### מעטפת האתר (`app/_site/`)
 
-שכבה שאינה תלויה בקורס מסוים: כל רכיב מקבל `CourseDefinition`. כולם server components, חוץ מקורא הרשימות: `NotesReader.tsx` ו-`NotesDialog.tsx` הם client components, ו-`NotesFrame`/`NotesToc` נטענים דרכם.
+שכבה שאינה תלויה בקורס מסוים: כל רכיב מקבל `CourseDefinition`. כולם server components, חוץ מקורא הרשימות וממעבר הכניסה: `NotesReader.tsx` ו-`NotesDialog.tsx` הם client components, ו-`NotesFrame`/`NotesToc` נטענים דרכם; `CourseEntry.tsx` הוא client component. `ArtSvg` ו-`FadedEquations` בלי hooks, ונמסרים אליו כ-JSX מהשרת.
 
 | קובץ | תפקיד |
 |---|---|
 | `courseModel.ts` | טיפוסים (`CourseDefinition`, `CourseModule`, `NotesChapter`, `CourseResource`, `CourseSummary`, `Crumb`) ועזרים טהורים: `notesPageHref` (עמוד מודפס + היסט → `#page=`), `modulesForChapter`, `modulesForSection`, `sectionRangeLabel`, `courseCrumbs`, `moduleCrumbs`, `summarizeCourse`; `siteName`. בלי React |
 | `notesNavigation.ts` | ניווט טהור בתוך הרשימות: `NotesTarget` (שער / פרק / סעיף), `locateNotesTarget` (עמוד, כותרת, הסעיף הקודם והבא על פני כל הפרקים; פרק שהסעיף הראשון שלו מתחיל בעמוד הפרק מתנרמל לסעיף), `notesTargetFromData` (מתוך `data-notes-*`), `notesViewerSrc` (כתובת ה-iframe עם פרמטרי המציג), `notesLocationHref`. בלי React |
-| `useNotesReader.ts` | `useNotesReaderAvailable()` — `useSyncExternalStore` על `(min-width: 821px)`, המשלים של `max-width: 820px` ב-CSS; בשרת `false`. `notesTargetFromClick` — מיירט רק לחיצה שמאלית רגילה על קישור עם `data-notes-*` (Ctrl/Shift/Alt/Cmd ולחיצה אמצעית נשארים לדפדפן) |
+| `useNotesReader.ts` | `useNotesReaderAvailable()` — `useSyncExternalStore` על `(min-width: 821px)`, המשלים של `max-width: 820px` ב-CSS; בשרת `false`. `notesTargetFromClick` — מיירט רק לחיצה שמאלית רגילה (`isPlainLeftClick`) על קישור עם `data-notes-*` |
 | `NotesFrame.tsx` | מסגרת הצפייה: שורת מיקום (פרק, עמוד, כותרת), הסעיף הקודם/הבא, מתג «תוכן העניינים» (אופציונלי), «פתיחה בלשונית חדשה», «הורדה», «סגירה» (אופציונלי), ו-iframe של מציג ה-PDF המובנה. `key={loadKey}` טוען את ה-iframe מחדש בכל מעבר, כי שינוי `#page=` לבדו לא מזיז את כל המציגים |
 | `NotesToc.tsx` | תוכן העניינים המלא: כרטיס לכל פרק (קישור לעמוד הפרק + קישור לעמוד שלו ברשימות) ו-`NotesSectionList`; `aria-current="location"` על היעד הפתוח |
 | `NotesReader.tsx` | הקורא שבפאנל «חומר הקורס»: תוכן העניינים בעמודה גוללת לצד `NotesFrame`, בגובה המסך. נפתח בעמוד השער; בחירה בתוכן העניינים מחליפה את העמוד במקום לפתוח לשונית. מתחת ל-821px אין iframe, ותוכן העניינים נשאר רשימת קישורים ללשונית חדשה |
 | `NotesDialog.tsx` | `NotesDialogHost`: עוטף פאנל פרק ומיירט את קישורי הרשימות שבו; פותח `NotesFrame` ב-`<dialog>` מקורי (`showModal()`: שכבה עליונה, Esc, החזרת focus לקישור). הסגירה קוראת ל-`close()` וה-state מתאפס ב-`onClose`, אחרת ה-focus לא חוזר |
-| `CourseMaterialsPanel.tsx` | פאנל החומר המלא: כרטיסי PDF (רשימות, סילבוס מורחב, דף נוסחאות) ו-`NotesReader` |
-| `ChapterPanel.tsx` | פאנל פרק בתוך `NotesDialogHost`: כותרת עם מספר וקישור לפרק ברשימות, כרטיסי המודולים (או מצב ריק), סעיפי הפרק, מעבר לפרק הקודם/הבא |
+| `CourseMaterialsPanel.tsx` | פאנל החומר המלא: כרטיסי PDF (רשימות, סילבוס מורחב, דף נוסחאות) ו-`NotesReader`. `art` אופציונלי: מוטיב קומפקטי בקצה הכותרת, מוסתר מ-820px |
+| `ChapterPanel.tsx` | פאנל פרק בתוך `NotesDialogHost`: כותרת עם מספר וקישור לפרק ברשימות, כרטיסי המודולים (או מצב ריק), סעיפי הפרק, מעבר לפרק הקודם/הבא. `art` אופציונלי: מוטיב מוחלט בקצה הכותרת, דוהה אל הטקסט, מוסתר מ-820px |
 | `NotesSectionList.tsx` | סעיפים: קישור לעמוד הסעיף ברשימות (`href` ללשונית חדשה + `data-notes-section` לקורא), תגיות המודולים שמכסים אותו, מספר עמוד |
+| `NotesSectionLinks.tsx` | רשימת סעיפים לקריאה מתוך מודול: `href` ללשונית חדשה, `data-notes-section`, מספר הסעיף כאי LTR וכותרת. בלי hooks. זורק אם סעיף חסר ברשימות |
 | `notesNavigation.test.ts` | 12 בדיקות: שער, מעבר בין סעיפים וחציית פרקים, קצוות, פרק עם מבוא / בלי מבוא / בלי סעיפים, יעד לא קיים, מעבר על כל 35 הסעיפים האמיתיים, פרסור `data-*`, התאמת עמוד ה-iframe לקישור ללשונית חדשה |
-| `CourseCard.tsx` | כרטיס קורס בדשבורד: קוד, שם, תיאור, מספר פרקים ומודולים |
+| `art/` | מנוע איורים טהור, בלי React ובלי RNG: `types.ts`, `geometry.ts` (מיפוי, מסלולים, שברונים, חיתוך לדיסקה), `integrate.ts` (RK4), `art.test.ts` |
+| `ArtSvg.tsx` | SVG מוטמע של `ArtPiece`. `pathLength={1}`; `animated` שם `--i` על כל קו כדי שמעבר הכניסה יצייר אותו. בלי `<marker>` ובלי `vector-effect` |
+| `FadedEquations.tsx` | נוסחאות KaTeX דהויות (`aria-hidden`, `pointer-events: none`). מיקום ב-`left`/`top` פיזיים, לא בלוגיים, כי העמוד RTL |
+| `CourseEntry.tsx` | מעבר הכניסה: עוגן רגיל (לא `next/link`). לחיצה שמאלית רגילה פותחת שכבה על `document.body`, מציירת את הכריכה, מציגה את שם הקורס, ואחרי כ-1.5ש׳ קוראת ל-`router.push`. לחיצה או Esc מדלגים. `prefetch` ב-hover וב-focus |
+| `clicks.ts` | `isPlainLeftClick`: לחיצה ראשית בלי מקש ובלי `defaultPrevented`. משותף למעבר הכניסה ולקורא הרשימות |
+| `clicks.test.ts` | לחיצה רגילה מול כפתור אחר, מקש, ו-`defaultPrevented` |
+| `CourseCard.tsx` | כרטיס קורס בדשבורד דרך `CourseEntry`: פס איור (`ArtSvg` + תת־קבוצה של הנוסחאות הדהויות), ואז קוד, שם, תיאור, מספר פרקים ומודולים |
 | `Breadcrumbs.tsx` | `nav.site-breadcrumbs`; כל תווית עטופה ב-`<bdi>` |
 | `BrandWordmark.tsx` | סמליל הטקסט «Kiri Math» (LTR) |
 
@@ -113,8 +120,11 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 | `notesToc.ts` | **נוצר אוטומטית** מ-`main.toc` ע״י `scripts/sync-course-notes.ts`: 6 פרקים, 35 סעיפים, `notesPageOffset = 4`. לא עורכים ידנית |
 | `OdeChapterPage.tsx` | עמוד פרק משותף ל-`/ode/1..6`, וגם `odeChapterMetadata` / `odeModuleMetadata` |
 | `OdeModuleBreadcrumbs.tsx` | ה-breadcrumbs שבתוך ה-topbar של ארבעת המודולים |
-| `course.test.ts` | 16 בדיקות: מספור פרקים וסעיפים, עמודים לא יורדים, קובץ route לכל פרק ומודול, סעיפי מודול שייכים לפרק שלו, breadcrumbs, היסט העמודים, קובצי ה-PDF קיימים |
-| `../courses.ts` | רשימת הקורסים שמוצגת בדשבורד (`summarizeCourse(odeCourse)`) |
+| `OdeNotesSections.tsx` | «לקריאה ברשימות» במבוא של מודול: מוצא את הסעיפים ב-`findModule` ועוטף את `NotesSectionLinks` ב-`NotesDialogHost` משלו, בלי לגעת בלשוניות |
+| `art.ts` | איורי הקורס, בלי React: כריכה (אוכף, שדה כיוונים עם פתרון, קפיץ; משבצת ריקה לציור), מוטיב לכל פרק 1–6, וקטלוג הנוסחאות הדהויות. `odeCoverCardEquations` הוא תת־הקבוצה שעל הכרטיס |
+| `art.test.ts` | דטרמיניזם, מסגרת, תקציב מסלולים, אורתוגונליות בפרק 3, ורינדור KaTeX של כל נוסחת כריכה |
+| `course.test.ts` | 17 בדיקות: מספור פרקים וסעיפים, עמודים לא יורדים, קובץ route לכל פרק ומודול, סעיפי מודול שייכים לפרק שלו ומתרגמים לעמוד מודפס, breadcrumbs, היסט העמודים, קובצי ה-PDF קיימים |
+| `../courses.ts` | רשימת הקורסים בדשבורד: `summarizeCourse` ועליו `art` (הכריכה ותת־קבוצת הנוסחאות). האיור לא יושב על `CourseDefinition` |
 
 שיוך המודולים לסעיפי הרשימות:
 
@@ -127,13 +137,12 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 
 **עמודי הרשימות:** `main.toc` שומר את מספרי העמודים המודפסים, ו-`#page=` מצפה לאינדקס הפיזי. ההפרש (4 עמודי פתיחה) נקרא מטבלת `/PageLabels` שב-PDF עצמו בזמן הסנכרון, ו-`notesPageHref` מוסיף אותו.
 
-**קורא הרשימות:** במסך רחב (מ-821px) הרשימות נפתחות בתוך האתר: בפאנל «חומר הקורס» בקורא הקבוע, ובעמודי הפרקים בחלון `<dialog>`. זה מציג ה-PDF של הדפדפן בתוך iframe, בלי ספרייה. `notesViewerSrc` מוסיף לכתובת `view=FitH&navpanes=0&toolbar=0` (Chrome/Edge) ו-`zoom=page-width&pagemode=none` (PDF.js של Firefox); כל מציג מתעלם מהפרמטרים שאינו מכיר. בכל הקישורים ה-`href` נשאר הקישור ללשונית חדשה, כך שבלי JavaScript, במסך צר או בלחיצה עם מקש, ההתנהגות היא של שלב 1.
+**קורא הרשימות:** במסך רחב (מ-821px) הרשימות נפתחות בתוך האתר: בפאנל «חומר הקורס» בקורא הקבוע, ובעמודי הפרקים ובמבוא של כל מודול («לקריאה ברשימות») בחלון `<dialog>`. זה מציג ה-PDF של הדפדפן בתוך iframe, בלי ספרייה. `notesViewerSrc` מוסיף לכתובת `view=FitH&navpanes=0&toolbar=0` (Chrome/Edge) ו-`zoom=page-width&pagemode=none` (PDF.js של Firefox); כל מציג מתעלם מהפרמטרים שאינו מכיר. בכל הקישורים ה-`href` נשאר הקישור ללשונית חדשה, כך שבלי JavaScript, במסך צר או בלחיצה עם מקש, ההתנהגות היא של שלב 1.
 
 ### מה עדיין חסר במעטפת
 
-- קישורי «לקריאה ברשימות» מתוך המודולים עצמם, אל הסעיפים שהם מכסים.
 - עיצוב המציג המובנה מוגבל: ב-Firefox סרגל הכלים של PDF.js נשאר, ואין שליטה בצבעי המציג. אם זה לא יספיק, השלב הבא הוא מציג מבוסס pdf.js (תלות חדשה).
-- רקעים ואיורים לכל קורס, אנימציית הכניסה לקורס («משוואות דיפרנציאליות רגילות») ולוגו.
+- משבצת הציור על כריכת הקורס (`odeCoverFigureSlot`) ריקה עד שיגיע ה-SVG. הסמליל הקיים הוא הטקסט «Kiri Math», בלי קובץ לוגו.
 - התאמת המודולים לגבולות הסעיפים ברשימות, ומודולים לפרקים 2, 3 ו-6.
 - הרשמה והתחברות: הדשבורד מציג כרגע את כל הקורסים.
 
@@ -430,7 +439,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 ## 8. מערכת העיצוב
 
-**קובץ יחיד:** `app/globals.css` (~4,480 שורות) — כל העיצוב מבוסס מחלקות CSS מותאמות (Tailwind מיובא אך כמעט לא בשימוש utility). **Theme בהיר בלבד** — אין dark mode.
+**קובץ יחיד:** `app/globals.css` (~4,808 שורות) — כל העיצוב מבוסס מחלקות CSS מותאמות (Tailwind מיובא אך כמעט לא בשימוש utility). **Theme בהיר בלבד** — אין dark mode.
 
 ### שפה עיצובית: «מחברת נייר»
 
@@ -441,7 +450,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 | משתנה | ערך | תפקיד |
 |---|---|---|
 | `--paper` | `#fbf7ed` | רקע העמוד והקנבס (קרם) |
-| `--paper-deep` | `#efe4cf` | נייר עמוק יותר: רקע אזור הצפייה בקורא הרשימות (`.notes-frame-viewer`) |
+| `--paper-deep` | `#efe4cf` | נייר עמוק יותר: רקע אזור הצפייה בקורא הרשימות (`.notes-frame-viewer`) ורקע פס האיור בכרטיס הקורס (`.course-card-art`) |
 | `--ink` | `#252b33` | טקסט ראשי |
 | `--muted` | `#6f736f` | תוויות משניות |
 | `--line` | `rgba(37,43,51,0.16)` | מסגרות |
@@ -489,6 +498,8 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 - **לשוניות משנה:** `.segmented-control`, `.practice-mode-nav`.
 - **מעטפת האתר:** דשבורד `.dashboard` עם `.course-card`; `.course-shell-body` — רשת `minmax(230px, 290px) minmax(0, 1fr)` של `nav.chapter-rail` (sticky) ו-`.course-panel`; בפאנלים `.resource-grid` (3 עמודות), `.notes-toc` ו-`.notes-section` (רשת: קישור · תגיות · עמוד, עם `.module-tag`), `.course-module-card.active` מול `.construction` בעמודי הפרקים, ו-`nav.chapter-pager`. `nav.site-breadcrumbs` מופיע בכל ה-topbars; המפריד `›` מתהפך אוטומטית ב-RTL.
 - **קורא הרשימות:** `.notes-reader` — רשת `minmax(240px, 0.42fr) minmax(0, 1fr)` בגובה `clamp(560px, 100vh − 44px, 1100px)`: `.notes-reader-toc` (עמודה גוללת; בתוכה הסעיף שורה אחת בלי עמודת העמוד, והתגיות בשורה משלהן) ו-`.notes-frame` (סרגל `.notes-frame-bar` עם `.notes-frame-button` ואזור צפייה על `--paper-deep`). `.toc-hidden` מקפל לעמודה אחת. היעד הפתוח מסומן ב-`--blue-soft` דרך `aria-current="location"`.
+- **איורים:** בקצוות בלבד, אף פעם לא מתחת לטקסט גוף, ולא במעבדות, בתרגול או במסילת הפרקים. קווים דרך `ArtSvg` (`pathLength={1}`, צבעי אסימון, `aria-hidden`). נוסחאות דהויות דרך `FadedEquations`. כרטיס הדשבורד: פס איור ביחס 8∶5. כותרת «חומר הקורס» וכותרות הפרקים: מוטיב בקצה, מוסתר מ-820px; בפרק הוא דוהה אל הטקסט עם `mask-image`.
+- **מעבר הכניסה:** `.course-entry-overlay` על `document.body` (לא בתוך הכרטיס: לכרטיס יש `backdrop-filter` ו-`transform`). `clip-path` נפתח ממלבן הכרטיס; `.is-drawing` מצייר את הקווים. `html.course-transition-open` נועל גלילה. שם הקורס בגודל `h1`.
 
 ### דפוסי רכיבים
 
@@ -508,6 +519,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 | ≤820px | הכול לעמודה אחת; topbar נערם; קנבס בגובה מוקטן; `.resource-grid` לעמודה אחת; תגיות הסעיפים יורדות לשורה משלהן; `chapter-pager` נערם; קורא הרשימות מצטמצם לתוכן העניינים בלבד (בלי iframe; הקישורים ללשונית חדשה) |
 | ≤680px / ≤640px | רשתות בסיס ויציבות → עמודה אחת |
 | ≥760px | `.lambda-option-list` → שלוש עמודות (שאילתת `min-width` היחידה בקובץ) |
+| `prefers-reduced-motion: reduce` | מעבר הכניסה בלבד: בלי חיתוך ובלי ציור קווים, דהייה קצרה של האטימות. אין כלל כזה במקום אחר בקובץ |
 
 גלילה אופקית מכוונת לנוסחאות רחבות (`.math-display-centered`, שורות נוסחה).
 
@@ -520,7 +532,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 ## 9. תשתית ופריסה
 
 - **פיתוח:** `npm run dev` (vinext), `npm run build` (`next build --webpack`).
-- **בדיקות:** `npm test` (vitest) — `app/constant-coefficients-euler/{math,practice}/*.test.ts`, `app/linear-homogeneous/math/*.test.ts`, `app/ode/course.test.ts`, `app/_site/notesNavigation.test.ts`.
+- **בדיקות:** `npm test` (vitest) — `app/constant-coefficients-euler/{math,practice}/*.test.ts`, `app/linear-homogeneous/math/*.test.ts`, `app/ode/course.test.ts`, `app/ode/art.test.ts`, `app/_site/notesNavigation.test.ts`, `app/_site/art/art.test.ts`, `app/_site/clicks.test.ts`.
 - **סנכרון הרשימות:** `npx tsx scripts/sync-course-notes.ts [תיקיית הרשימות]` (ברירת מחדל: שתי רמות מעל המאגר), להרצה אחרי כל קומפילציה של הרשימות. הסקריפט מפרסר את `main.toc`, מנרמל כותרות (גרשיים, מקפים; נכשל אם נשאר LaTeX), בודק שהסעיפים שייכים לפרקים ושהעמודים לא יורדים, קורא את היסט העמודים מ-`/PageLabels`, כותב את `app/ode/notesToc.ts` ומעתיק את `main.pdf`, `ExtendedSyllabus_winter2026.pdf` ו-`FormulaSheet.pdf` ל-`public/courses/ode/`.
 - **Worker:** `worker/index.ts` — handler ל-Cloudflare Workers + אופטימיזציית תמונות.
 - **DB:** `db/schema.ts` ריק בכוונה; `db/index.ts` מצפה ל-binding בשם `DB` (D1). לא בשימוש כרגע.
@@ -543,7 +555,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 ## 10. הערות ארכיטקטוניות
 
 - **שני סגנונות מבניים:** מישור הפאזה הוא קובץ מונוליטי אחד; מודולי אוילר, ההומוגניות וסדרות הפונקציות בנויים בשכבות (components / math / practice לפי הצורך). בשלושתם המעטפת היא `<Name>Module.tsx` (`"use client"`), וה-`page.tsx` שטוען אותה יושב תחת `app/ode/N/`. כל פיצול עתידי של מישור הפאזה כדאי שילך בכיוון הזה.
-- **מבנה רב־קורסי:** `app/_site/` לא מכיר קורס מסוים. קורס הוא תיקייה עם `course.ts`, תוכן עניינים שנוצר מהרשימות, ונתיבי פרקים ומודולים; הוא נרשם ב-`app/courses.ts`. הנתיבים שטוחים ומפורשים (תיקייה לכל פרק ולכל מודול), ו-`course.test.ts` מוודא שהרישום והתיקיות לא נפרדים.
+- **מבנה רב־קורסי:** `app/_site/` לא מכיר קורס מסוים. קורס הוא תיקייה עם `course.ts`, תוכן עניינים שנוצר מהרשימות, ונתיבי פרקים ומודולים; הוא נרשם ב-`app/courses.ts`. הנתיבים שטוחים ומפורשים (תיקייה לכל פרק ולכל מודול), ו-`course.test.ts` מוודא שהרישום והתיקיות לא נפרדים. מנוע האיורים יושב ב-`_site/art`; הציורים של 104136 ב-`app/ode/art.ts`, ומחוברים לכרטיס ב-`courses.ts`. הם לא על `CourseDefinition`, כי האובייקט הזה נמסר לקומפוננטות client.
 - **קורא הרשימות משודרג, לא מחליף:** כל קישור לרשימות הוא קודם כול קישור רגיל ללשונית חדשה, והקורא רק מיירט אותו. לכן אין מצב שבו הרשימות לא נגישות. ה-breakpoint של 820px קיים פעמיים, ב-CSS וב-`useNotesReaderAvailable`; מי שמשנה אחד צריך לשנות את השני.
 - **כפילות מכוונת:** ל-`MathText`/`DisplayMath`/`mathTypography` יש ארבע גרסאות (פאזה מקומית; עותק זהה באוילר, בהומוגניות ובסדרות הפונקציות). אין עדיין חבילת UI מתמטי משותפת.
 - **שתי פרדיגמות מתמטיות:** מודולי הפאזה ואוילר עובדים עם מבנים סגורים (מטריצות 2×2, שורשים, פולינומים). מודול ההומוגניות מפרסר נוסחאות חופשיות ומפעיל nerdamer — עם מדיניות זהירות סביב `e`/`π` ופישוט לתצוגה מול אימות. מודול סדרות הפונקציות עדיין בלי שכבת מתמטיקה אלגוריתמית.

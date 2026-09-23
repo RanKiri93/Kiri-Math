@@ -1,6 +1,7 @@
 "use client";
 
 import { OdeModuleBreadcrumbs } from "./ode/OdeModuleBreadcrumbs";
+import { OdeNotesSections } from "./ode/OdeNotesSections";
 import katex from "katex";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { InlineMath } from "react-katex";
@@ -4897,6 +4898,8 @@ function PhasePlaneIntro() {
           נחקור את כל תמונות הפאזה האפשריות במקרה הפרטי. בלשוניות המצורפות מוצעים כלים על מנת להטמיע ולתרגל את נושא
           תמונת הפאזה של המערכת <MathText math="X'=AX" />.
         </p>
+
+        <OdeNotesSections moduleId="phase-plane" />
 
         <div className="intro-expansion-list">
           <details className="intro-expansion">

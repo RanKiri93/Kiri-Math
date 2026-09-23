@@ -3258,20 +3258,45 @@ input[type="range"] {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
   gap: 18px;
+  min-width: 0;
 }
 
 .course-card {
   display: grid;
   align-content: start;
-  gap: 12px;
-  min-height: 280px;
-  padding: 26px;
+  gap: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
   color: var(--ink);
   text-decoration: none;
   transition:
     transform 160ms ease,
     border-color 160ms ease,
     background 160ms ease;
+}
+
+.course-card-art {
+  position: relative;
+  display: block;
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-deep);
+}
+
+.course-card-art svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+}
+
+.course-card-body {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 22px 26px 26px;
 }
 
 .course-card:hover {
@@ -3460,6 +3485,24 @@ nav.chapter-rail {
 .course-panel-header {
   display: grid;
   gap: 10px;
+}
+
+.course-panel-header.has-art {
+  grid-template-columns: minmax(0, 1fr) 200px;
+  align-items: center;
+  gap: 18px;
+}
+
+.course-panel-art {
+  display: block;
+  min-width: 0;
+}
+
+.course-panel-art svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
 }
 
 .course-panel h1 {
@@ -3683,6 +3726,199 @@ nav.chapter-rail {
   font-weight: 800;
 }
 
+/* Art: token strokes, drawn later via pathLength. No markers, no non-scaling-stroke. */
+.art-stroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.art-stroke.weight-hair {
+  stroke-width: 1.2;
+}
+
+.art-stroke.weight-bold {
+  stroke-width: 2.8;
+}
+
+.art-stroke.dashed {
+  stroke-dasharray: 0.02 0.018;
+}
+
+.art-stroke.tone-ink {
+  stroke: var(--ink);
+}
+
+.art-stroke.tone-muted {
+  stroke: var(--muted);
+}
+
+.art-stroke.tone-blue {
+  stroke: var(--blue);
+}
+
+.art-stroke.tone-rust {
+  stroke: var(--rust);
+}
+
+.art-stroke.tone-gold {
+  stroke: var(--gold);
+}
+
+.art-stroke.tone-green {
+  stroke: var(--green);
+}
+
+.art-dot {
+  stroke: none;
+}
+
+.art-dot.tone-ink {
+  fill: var(--ink);
+}
+
+.art-dot.tone-muted {
+  fill: var(--muted);
+}
+
+.art-dot.tone-blue {
+  fill: var(--blue);
+}
+
+.art-dot.tone-rust {
+  fill: var(--rust);
+}
+
+.art-dot.tone-gold {
+  fill: var(--gold);
+}
+
+.art-dot.tone-green {
+  fill: var(--green);
+}
+
+.faded-equations {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.faded-equation {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  color: var(--blue);
+  font-size: var(--math-size-standard);
+  opacity: 0.15;
+  white-space: nowrap;
+  direction: ltr;
+  unicode-bidi: isolate;
+  transform: rotate(var(--rotate));
+}
+
+.faded-equation.size-sm {
+  font-size: var(--math-size-compact);
+}
+
+.faded-equation.size-lg {
+  font-size: calc(var(--math-size-standard) * 1.15);
+}
+
+/* Course-entry transition. The cover has about 125 strokes, so the stagger is
+   shorter than one step per stroke would need in order to finish near 1.5s. */
+.course-entry-overlay {
+  --art-step: 3ms;
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  background: inherit;
+  cursor: pointer;
+}
+
+html.course-transition-open {
+  overflow: hidden;
+}
+
+.course-entry-art {
+  position: absolute;
+}
+
+.course-entry-title {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2rem, 4vw, 4.25rem);
+  font-weight: 800;
+  line-height: 0.96;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.course-entry-overlay .art-stroke:not(.dashed) {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.course-entry-overlay .art-stroke.dashed,
+.course-entry-overlay .art-dot {
+  opacity: 0;
+}
+
+.course-entry-overlay.is-drawing .art-stroke:not(.dashed) {
+  animation: art-draw 700ms ease forwards;
+  animation-delay: calc(var(--i) * var(--art-step));
+}
+
+.course-entry-overlay.is-drawing .art-stroke.dashed,
+.course-entry-overlay.is-drawing .art-dot {
+  animation: art-fade 700ms ease forwards;
+  animation-delay: calc(var(--i) * var(--art-step));
+}
+
+.course-entry-overlay.is-drawing .course-entry-title {
+  animation: art-fade 450ms ease 300ms forwards;
+}
+
+@keyframes art-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes art-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-entry-overlay .art-stroke:not(.dashed) {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .course-entry-overlay .art-stroke.dashed,
+  .course-entry-overlay .art-dot,
+  .course-entry-title {
+    opacity: 1;
+    animation: none;
+  }
+}
+
 /* Notes reader: table of contents beside a framed native PDF viewer */
 .notes-reader {
   display: grid;
@@ -3885,10 +4121,30 @@ html:has(.notes-dialog[open]) {
 }
 
 .chapter-panel-header {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 22px;
+}
+
+.chapter-panel-header:has(.chapter-panel-art) {
+  padding-inline-end: min(230px, 36%);
+}
+
+.chapter-panel-art {
+  position: absolute;
+  z-index: -1;
+  inset-inline-end: 0;
+  top: 50%;
+  width: min(230px, 38%);
+  height: auto;
+  opacity: 0.5;
+  pointer-events: none;
+  transform: translateY(-50%);
+  mask-image: linear-gradient(to right, black, transparent);
+  -webkit-mask-image: linear-gradient(to right, black, transparent);
 }
 
 .chapter-panel-number {
@@ -3910,6 +4166,59 @@ html:has(.notes-dialog[open]) {
 
 .chapter-panel-notes-link:hover {
   text-decoration: underline;
+}
+
+.module-intro-content .notes-dialog-host {
+  display: contents;
+}
+
+.module-notes {
+  margin: 18px 0 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.module-notes-heading {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.module-notes-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.module-notes-list a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  border-radius: 6px;
+  padding: 4px 2px;
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.module-notes-list a:hover {
+  text-decoration: underline;
+}
+
+.module-notes-number {
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.module-notes-list small {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .chapter-panel .course-module-card {
@@ -4403,12 +4712,31 @@ nav.chapter-pager {
     gap: 8px;
   }
 
+  .chapter-panel-art,
+  .course-panel-art {
+    display: none;
+  }
+
+  .chapter-panel-header:has(.chapter-panel-art) {
+    padding-inline-end: 0;
+  }
+
+  .course-panel-header.has-art {
+    grid-template-columns: 1fr;
+  }
+
   .notes-section {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .notes-section-link {
     grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .module-notes-list a {
+    align-items: start;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .notes-section-tags {

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ArtSvg } from "./ArtSvg";
+import type { ArtPiece } from "./art/types";
 import {
   chapterHref,
   chapterLabel,
@@ -16,7 +18,15 @@ const statusLabels = {
   construction: "מודול בבנייה",
 } as const;
 
-export function ChapterPanel({ course, chapter: chapterNumber }: { course: CourseDefinition; chapter: number }) {
+export function ChapterPanel({
+  course,
+  chapter: chapterNumber,
+  art,
+}: {
+  course: CourseDefinition;
+  chapter: number;
+  art?: ArtPiece;
+}) {
   const chapter = findChapter(course, chapterNumber);
   if (!chapter) {
     throw new Error(`Chapter ${chapterNumber} is not in the notes of "${course.slug}"`);
@@ -29,6 +39,7 @@ export function ChapterPanel({ course, chapter: chapterNumber }: { course: Cours
     <NotesDialogHost course={course}>
       <section className="course-panel chapter-panel">
         <header className="chapter-panel-header">
+          {art ? <ArtSvg className="chapter-panel-art" piece={art} /> : null}
           <span className="chapter-panel-number" dir="ltr" aria-hidden="true">
             {chapter.number}
           </span>

@@ -1,6 +1,6 @@
 # Agent: design
 
-You own the visual layer: `app/globals.css` (~3,520 lines), layout, and component
+You own the visual layer: `app/globals.css` (~4,808 lines), layout, and component
 styling. The site already has a coherent visual identity. **Your default job is to extend
 it, not to redesign it.**
 
@@ -17,7 +17,7 @@ Defined in `:root` in `globals.css`:
 | Token | Value | Role |
 | --- | --- | --- |
 | `--paper` | `#fbf7ed` | Page and canvas background |
-| `--paper-deep` | `#efe4cf` | Reserved: deeper paper |
+| `--paper-deep` | `#efe4cf` | Deeper paper: the notes viewer and the dashboard card's art band |
 | `--ink` | `#252b33` | Primary text |
 | `--muted` | `#6f736f` | Secondary labels |
 | `--line` | `rgba(37,43,51,0.16)` | Borders |
@@ -41,6 +41,17 @@ Legend swatches `#2c456b` / `#83aff0` / `#ff9d00` remain literals.
 
 **Introducing a new color requires asking first.** Palette drift is the fastest way to
 make a multi-module site look unmaintained.
+
+## Art
+
+Edges only. Nothing in labs, practice, or the chapter rail, and never underneath body text.
+
+- Inline SVG through `ArtSvg`. Strokes use token colors. `aria-hidden`. No `<marker>`. No `vector-effect: non-scaling-stroke` on art the course-entry transition draws.
+- `pathLength={1}` so the transition can draw a stroke with `stroke-dashoffset`. `animated` sets `--i`.
+- Faded formulas go through `FadedEquations`: KaTeX, low opacity, `aria-hidden`, physical `left`/`top` (logical insets flip in RTL). The parent must be `position: relative`.
+- Course drawings live in `app/ode/art.ts`. The engine in `app/_site/art/` stays course-agnostic and deterministic.
+- The course-entry overlay is portaled to `document.body`. A card's `backdrop-filter` and hover `transform` would trap `position: fixed`.
+- `prefers-reduced-motion: reduce` skips the clip and the stroke drawing and uses a short opacity fade. That is the only reduced-motion rule in `globals.css`. New motion needs the same path.
 
 ## Structural DNA: the three-column grid
 

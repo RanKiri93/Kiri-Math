@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { moduleCrumbs, notesPageHref } from "../_site/courseModel";
+import { locateNotesTarget } from "../_site/notesNavigation";
 import { odeCourse } from "./course";
 
 const repoRoot = join(__dirname, "..", "..");
@@ -62,6 +63,17 @@ describe("odeCourse modules", () => {
       expect(existsSync(routeFileFor(entry.href)), entry.href).toBe(true);
     },
   );
+
+  it("every module section resolves to a printed page in the notes", () => {
+    for (const courseModule of odeCourse.modules) {
+      for (const sectionNumber of courseModule.sections) {
+        const location = locateNotesTarget(odeCourse.chapters, { kind: "section", section: sectionNumber });
+        expect(location?.section?.number, sectionNumber).toBe(sectionNumber);
+        expect(location?.section?.title.length, sectionNumber).toBeGreaterThan(0);
+        expect(location?.printedPage, sectionNumber).toEqual(expect.any(Number));
+      }
+    }
+  });
 
   it("breadcrumbs end at the module's chapter page", () => {
     const crumbs = moduleCrumbs(odeCourse, "phase-plane");

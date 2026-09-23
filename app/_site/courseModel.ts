@@ -1,3 +1,5 @@
+import type { ArtPiece, FadedEquation } from "./art/types";
+
 export type NotesSection = {
   number: string;
   title: string;
@@ -49,6 +51,10 @@ export type CourseDefinition = {
 export type CourseSummary = Pick<CourseDefinition, "slug" | "code" | "title" | "tagline" | "href"> & {
   chapterCount: number;
   moduleCount: number;
+  art: {
+    cover: ArtPiece;
+    equations: readonly FadedEquation[];
+  };
 };
 
 export type Crumb = {
@@ -125,7 +131,7 @@ export function moduleCrumbs(course: CourseDefinition, moduleId: string): Crumb[
   ];
 }
 
-export function summarizeCourse(course: CourseDefinition): CourseSummary {
+export function summarizeCourse(course: CourseDefinition): Omit<CourseSummary, "art"> {
   return {
     slug: course.slug,
     code: course.code,

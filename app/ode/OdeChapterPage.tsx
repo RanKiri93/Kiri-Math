@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { ChapterPanel } from "../_site/ChapterPanel";
 import { CourseShell } from "../_site/CourseShell";
 import { chapterLabel, findChapter, findModule } from "../_site/courseModel";
+import { odeChapterArt } from "./art";
 import { odeCourse } from "./course";
 
 export function OdeChapterPage({ chapter }: { chapter: number }) {
   return (
     <CourseShell course={odeCourse} active={chapter}>
-      <ChapterPanel course={odeCourse} chapter={chapter} />
+      <ChapterPanel course={odeCourse} chapter={chapter} art={odeChapterArt[chapter]} />
     </CourseShell>
   );
 }

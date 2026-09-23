@@ -1,3 +1,4 @@
+import { OdeNotesSections } from "../../ode/OdeNotesSections";
 import { MathText } from "./MathText";
 
 export function ConstantCoefficientsEulerIntro() {
@@ -19,6 +20,8 @@ export function ConstantCoefficientsEulerIntro() {
           את השיטות המרכזיות לבניית בסיס למרחב הפתרונות, ואת קריטריונים ליציבות וליציבות אסימפטוטית. בלשוניות
           המצורפות מוצגים פירוטים תיאורטיים לכל אחד מסוגי המשוואות.
         </p>
+
+        <OdeNotesSections moduleId="constant-coefficients-euler" />
 
         <div className="intro-expansion-list">
           <details className="intro-expansion">

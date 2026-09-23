@@ -1,3 +1,4 @@
+import { OdeNotesSections } from "../../ode/OdeNotesSections";
 import { MathText } from "./MathText";
 
 export function FunctionSequencesSeriesIntro() {
@@ -11,6 +12,7 @@ export function FunctionSequencesSeriesIntro() {
           פונקציות מגדיר פונקציה שאפשר לעבוד איתה, ומה הקשר בין טורי חזקות לטורי טיילור. כאן מופיעה מפת
           הדרך של ארבעת הפרקים; הפעילויות האינטראקטיביות יתווספו בלשוניות המתאימות.
         </p>
+        <OdeNotesSections moduleId="function-sequences-series" />
       </article>
 
       <div className="module-intro-grid function-series-roadmap">
