@@ -12,12 +12,15 @@
     "start": "next start",
     "start:vinext": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@fontsource/assistant": "^5.2.9",
     "drizzle-orm": "0.45.2",
     "katex": "^0.17.0",
+    "nerdamer": "^1.1.13",
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6",
@@ -39,6 +42,7 @@
     "typescript": "5.9.3",
     "vinext": "0.0.50",
     "vite": "8.0.13",
+    "vitest": "^4.1.10",
     "wrangler": "4.92.0"
   },
   "type": "module"
