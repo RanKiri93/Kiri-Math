@@ -1,11 +1,13 @@
 /**
- * Syncs the ODE lecture notes into the site.
+ * Syncs a course's lecture notes into the site.
  *
  *   npx tsx scripts/sync-course-notes.ts [notes-folder]
+ *   npx tsx scripts/sync-course-notes.ts --course fourier <notes-folder>
  *
  * notes-folder defaults to the course folder two levels above the repository. Run it after
- * every recompile of main.tex: it copies the PDFs into public/courses/ode/ and regenerates
- * app/ode/notesToc.ts from main.toc, so the PDF and the table of contents never drift apart.
+ * every recompile of main.tex: it copies the PDFs into public/courses/<course>/ and regenerates
+ * app/<course>/notesToc.ts from main.toc. The default course remains ODE; Fourier requires
+ * an explicit source folder. Source files are never modified.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -16,15 +18,43 @@ type Section = { number: string; title: string; page: number };
 type Chapter = { number: number; title: string; page: number; sections: Section[] };
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const notesRoot = resolve(process.argv[2] ?? join(repoRoot, "..", ".."));
-const publicDir = join(repoRoot, "public", "courses", "ode");
-const tocOutput = join(repoRoot, "app", "ode", "notesToc.ts");
 
-const copies: { source: string; target: string }[] = [
-  { source: "main.pdf", target: "notes.pdf" },
-  { source: "ExtendedSyllabus_winter2026.pdf", target: "syllabus.pdf" },
-  { source: "FormulaSheet.pdf", target: "formula-sheet.pdf" },
-];
+// The shared navigation uses plain-text titles. Expand these exact source formulas
+// into words rather than leaking LaTeX (or unisolated math) into RTL navigation.
+const fourierTitleAliases: Readonly<Record<string, string>> = {
+  [String.raw`תכונות של התמרת פוריה ב-$\ensuremath {\mathcal {G}}\qty (\ensuremath {\mathbb {R}})$`]:
+    "תכונות התמרת פוריה עבור פונקציות רציפות למקוטעין ואינטגרביליות בהחלט",
+  [String.raw`נוסחאות היפוך והתמרת פוריה ב-$\ensuremath {\mathcal {G}}^2\qty (\ensuremath {\mathbb {R}})$`]:
+    "נוסחאות היפוך והתמרת פוריה עבור פונקציות רציפות למקוטעין וריבוע־אינטגרביליות",
+  [String.raw`קונבולוציה ב-$\ensuremath {\mathcal {G}}\qty (\ensuremath {\mathbb {R}})$`]:
+    "קונבולוציה של פונקציות רציפות למקוטעין ואינטגרביליות בהחלט",
+};
+
+export function syncOptions(args: string[]) {
+  const explicitCourse = args[0] === "--course";
+  const course = explicitCourse ? args[1] : "ode";
+  const folder = args[explicitCourse ? 2 : 0];
+  if (
+    (course !== "ode" && course !== "fourier") ||
+    args.length > (explicitCourse ? 3 : 1) ||
+    folder?.startsWith("--") ||
+    (course === "fourier" && !folder)
+  ) {
+    throw new Error("Usage: sync-course-notes.ts [--course ode|fourier] [notes-folder]; Fourier requires notes-folder");
+  }
+  return {
+    course,
+    notesRoot: resolve(folder ?? join(repoRoot, "..", "..")),
+    publicDir: join(repoRoot, "public", "courses", course),
+    tocOutput: join(repoRoot, "app", course, "notesToc.ts"),
+    titleAliases: course === "fourier" ? fourierTitleAliases : {},
+    copies: [
+      { source: "main.pdf", target: "notes.pdf" },
+      { source: course === "fourier" ? "ElaborateSyllabus.pdf" : "ExtendedSyllabus_winter2026.pdf", target: "syllabus.pdf" },
+      { source: course === "fourier" ? "formula_sheet.pdf" : "FormulaSheet.pdf", target: "formula-sheet.pdf" },
+    ],
+  };
+}
 
 function readGroup(text: string, start: number): { content: string; end: number } {
   if (text[start] !== "{") {
@@ -57,7 +87,8 @@ function normalizeTitle(raw: string): string {
   return title;
 }
 
-function parseToc(tocText: string): Chapter[] {
+export function parseToc(tocText: string, titleAliases: Readonly<Record<string, string>> = {}): Chapter[] {
+  const titleFor = (raw: string) => normalizeTitle(titleAliases[raw] ?? raw);
   const chapters: Chapter[] = [];
   for (const line of tocText.split(/\r?\n/)) {
     const match = line.match(/^\\contentsline \{(chapter|section)\}/);
@@ -73,7 +104,7 @@ function parseToc(tocText: string): Chapter[] {
     if (match[1] === "chapter") {
       chapters.push({
         number: chapters.length + 1,
-        title: normalizeTitle(titleGroup.content),
+        title: titleFor(titleGroup.content),
         page,
         sections: [],
       });
@@ -88,7 +119,7 @@ function parseToc(tocText: string): Chapter[] {
     if (!chapter || !numbered[1].startsWith(`${chapter.number}.`)) {
       throw new Error(`Section ${numbered[1]} does not belong to chapter ${chapter?.number}`);
     }
-    chapter.sections.push({ number: numbered[1], title: normalizeTitle(numbered[2]), page });
+    chapter.sections.push({ number: numbered[1], title: titleFor(numbered[2]), page });
   }
 
   if (chapters.length === 0) {
@@ -110,7 +141,7 @@ function parseToc(tocText: string): Chapter[] {
  * Reads /PageLabels from the PDF: the physical index where decimal numbering starts, so that
  * printed page N is physical page N + offset. Streams are Flate-compressed object streams.
  */
-function readPageOffset(pdf: Buffer): number {
+export function readPageOffset(pdf: Buffer): number {
   let text = pdf.toString("latin1");
   const raw = text;
   const streamStart = /stream\r?\n/g;
@@ -174,6 +205,7 @@ function renderTocModule(chapters: Chapter[], pageOffset: number): string {
 }
 
 function main() {
+  const { notesRoot, publicDir, tocOutput, titleAliases, copies } = syncOptions(process.argv.slice(2));
   const tocPath = join(notesRoot, "main.toc");
   const pdfPath = join(notesRoot, "main.pdf");
   for (const path of [tocPath, pdfPath, ...copies.map((copy) => join(notesRoot, copy.source))]) {
@@ -182,7 +214,7 @@ function main() {
     }
   }
 
-  const chapters = parseToc(readFileSync(tocPath, "utf8"));
+  const chapters = parseToc(readFileSync(tocPath, "utf8"), titleAliases);
   const pageOffset = readPageOffset(readFileSync(pdfPath));
 
   mkdirSync(publicDir, { recursive: true });
@@ -198,4 +230,4 @@ function main() {
   console.log(`copied ${copies.map((copy) => copy.target).join(", ")} → ${publicDir}`);
 }
 
-main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

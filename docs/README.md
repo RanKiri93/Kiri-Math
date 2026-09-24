@@ -4,6 +4,9 @@ Durable artifacts produced by the specialist agents. **This is the handoff surfa
 Cursor and opencode:** a plan written here in one tool is picked up by the other, so
 switching environments mid-task costs only the conversation, not the thinking.
 
+The current cross-session brief is [`HANDOFF.md`](../HANDOFF.md): mission, user decisions,
+implemented convergence activities, verification, and the next review steps.
+
 | Directory | Written by | Contents |
 | --- | --- | --- |
 | `plans/` | `activity-planner` | Feasibility analyses and implementation plans |

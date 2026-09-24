@@ -108,6 +108,18 @@ that must be budgeted, not assumed.
 `MathText` (inline, variants `inline`/`compact`/`standard`) and `DisplayMath` (block).
 Four near-identical copies exist across modules; there is no shared package yet.
 
+### K. Curated convergence lab — `app/function-sequences-series/math/`
+
+`convergence.ts` provides explicit values, pointwise limits, classifications and supremum
+errors for a fixed catalogue of sequences and supported intervals. `convergenceActivity.ts`
+checks observed escape points and the catalogue's exact moving-witness rules. These are
+analytic family-specific rules, **not a general limit or convergence engine**.
+
+`sequencePlot.ts` and `components/SequencePlot.tsx` draw local, hand-written SVG plots.
+Sampling, critical-point inclusion, clipping and oscillation envelopes are display-only;
+they never determine convergence. The finite viewport is separate from the mathematical
+domain. Neither the plots nor this catalogue accept arbitrary student formulas.
+
 ---
 
 ## 2. How students can enter answers
@@ -170,13 +182,12 @@ false `domainError`.
 
 Be explicit about these when scoping. Each is a genuine project, not a small addition.
 
-- **No plotting library.** Any graph — including the planned function-sequences lab —
-  means hand-written Canvas 2D, as in the phase-plane module.
+- **No plotting library.** Graphs use local hand-written Canvas 2D (phase plane) or SVG
+  (the curated convergence lab); there is no general-purpose shared plotter.
 - **No general ODE solver.** RK4 exists only for 2×2 linear systems inside the
   phase-plane canvas.
-- **No CAS beyond nerdamer.** No integration engine, no series expansion, no limits, no
-  convergence testing. The function-sequences module will need something here and there
-  is currently no answer.
+- **No CAS beyond nerdamer.** No general integration, series-expansion, limit or convergence
+  engine. The convergence lab uses only the explicit curated rules described above.
 - **No server-side computation.** Everything runs in the browser. The Cloudflare Worker
   only serves the app; the D1 schema is intentionally empty.
 - **No persistence of any kind.** Statistics reset on refresh, by design.

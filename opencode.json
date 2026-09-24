@@ -1,0 +1,78 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "orchestrator",
+  "agent": {
+    "plan": {
+      "model": "openai/gpt-6-astra",
+      "variant": "high"
+    },
+    "build": {
+      "model": "openai/gpt-6-luna",
+      "variant": "medium"
+    },
+    "general": {
+      "model": "openai/gpt-6-luna",
+      "variant": "medium"
+    },
+    "explore": {
+      "model": "openai/gpt-6-luna",
+      "variant": "medium"
+    },
+    "activity-planner": {
+      "description": "Plans feasible interactive activities for this codebase without writing production code.",
+      "mode": "all",
+      "model": "openai/gpt-6-astra",
+      "variant": "high",
+      "prompt": "{file:./.agents/activity-planner.md}"
+    },
+    "design": {
+      "description": "Extends the established visual language, layout, and styling without redesigning it.",
+      "mode": "all",
+      "model": "openai/gpt-6-luna",
+      "variant": "medium",
+      "prompt": "{file:./.agents/design.md}"
+    },
+    "design-review": {
+      "description": "Audits cross-module visual consistency and writes work orders without fixing code.",
+      "mode": "all",
+      "model": "openai/gpt-6-astra",
+      "variant": "high",
+      "prompt": "{file:./.agents/design-review.md}"
+    },
+    "hebrew-copy": {
+      "description": "Writes and revises precise, consistent Hebrew student-facing copy.",
+      "mode": "all",
+      "model": "openai/gpt-6-luna",
+      "variant": "medium",
+      "prompt": "{file:./.agents/hebrew-copy.md}"
+    },
+    "pedagogy-review": {
+      "description": "Audits practice and activity design, flow, difficulty, and sibling-mode consistency.",
+      "mode": "all",
+      "model": "openai/gpt-6-astra",
+      "variant": "high",
+      "prompt": "{file:./.agents/pedagogy-review.md}"
+    },
+    "question-designer": {
+      "description": "Designs validated, reproducible randomized question families.",
+      "mode": "all",
+      "model": "openai/gpt-6-luna",
+      "variant": "medium",
+      "prompt": "{file:./.agents/question-designer.md}"
+    },
+    "scribe": {
+      "description": "Keeps ARCHITECTURE.md accurate after structural changes.",
+      "mode": "all",
+      "model": "openai/gpt-6-luna",
+      "variant": "medium",
+      "prompt": "{file:./.agents/scribe.md}"
+    },
+    "verifier": {
+      "description": "Runs tests and verifies generators, checkers, and mathematical correctness.",
+      "mode": "all",
+      "model": "openai/gpt-6-luna",
+      "variant": "medium",
+      "prompt": "{file:./.agents/verifier.md}"
+    }
+  }
+}

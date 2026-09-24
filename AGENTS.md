@@ -1,13 +1,17 @@
 # Kiri Math — Interactive Course Site
 
 Hebrew-language (RTL) interactive learning environment, working name **Kiri Math**
-(`siteName` in `app/_site/courseModel.ts`). The site hosts courses; the only course today
-is the Technion course "Ordinary Differential Equations M" (104136) at `/ode`. A course
+(`siteName` in `app/_site/courseModel.ts`). The site hosts two Technion courses:
+"Ordinary Differential Equations M" (104136) at `/ode` and "טורי פוריה והתמרות אינטגרליות"
+(104214) at `/fourier`. Fourier currently has course materials and chapter pages, without interactive modules. A course
 is organized by the chapters of its lecture notes, and each chapter hosts independent
 modules, each combining theory, an interactive exploration activity, and self-practice
 with feedback.
 
 The plan for the multi-course structure is `docs/plans/kiri-math-site-structure.md`.
+
+For the current ODE convergence-lab mission, agreed scope, and next-session review steps,
+read `HANDOFF.md` (checkpoint dated 2026-09-24).
 
 `ARCHITECTURE.md` is the authoritative description of the codebase. Read it before
 any non-trivial change. Keep it accurate (see the `scribe` agent).
@@ -29,6 +33,9 @@ After the lecture notes are recompiled, run `npx tsx scripts/sync-course-notes.t
 regenerates `app/ode/notesToc.ts` from `main.toc` (never edit that file by hand), reads
 the printed-page offset from the PDF, and copies the notes, syllabus and formula sheet
 into `public/courses/ode/`.
+For Fourier, run `npx tsx scripts/sync-course-notes.ts --course fourier "<notes-folder>"`.
+It reads `main.toc`, `main.pdf`, `ElaborateSyllabus.pdf`, and `formula_sheet.pdf`, generates
+`app/fourier/notesToc.ts`, and copies the PDFs into `public/courses/fourier/` without touching ODE.
 
 Before declaring any code change complete, run `npm test` and `npm run typecheck`.
 
@@ -43,6 +50,8 @@ app/
   _site/                          course-agnostic site shell: model, rail, panels, breadcrumbs
   ode/                            the 104136 course: course.ts, notesToc.ts, chapter
                                   and module routes (/ode, /ode/1..6, /ode/N/<module>)
+  fourier/                        the 104214 course: course.ts, notesToc.ts, art,
+                                  materials and chapter routes (/fourier, /fourier/1..4)
   phase-plane-module.tsx          monolithic module (~5,400 lines)
   constant-coefficients-euler/    layered module (reference implementation)
   linear-homogeneous/             layered module, symbolic algebra

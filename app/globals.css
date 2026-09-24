@@ -548,7 +548,7 @@ input[type="range"] {
   min-width: 0;
 }
 
-/* Function Sequences & Series module — future 3-column lab (control | graph | analysis) */
+/* Function Sequences & Series module — 3-column lab (control | graph | analysis) */
 .function-series-lab-grid {
   display: grid;
   grid-template-columns: minmax(270px, 330px) minmax(520px, 1fr) minmax(260px, 340px);
@@ -560,6 +560,533 @@ input[type="range"] {
 
 .function-series-lab-grid > * {
   min-width: 0;
+}
+
+.function-series-lab-grid .canvas-panel {
+  display: block;
+  min-width: 0;
+  padding: 14px;
+  overflow: visible;
+}
+
+.function-series-lab-grid .analysis-panel {
+  min-width: 0;
+}
+
+.convergence-lab .function-series-lab-grid {
+  grid-template-areas: "controls plots task";
+  grid-template-columns: minmax(240px, 330px) minmax(0, 1fr) minmax(240px, 340px);
+}
+
+.convergence-lab .function-series-lab-grid > .control-panel {
+  grid-area: controls;
+}
+
+.convergence-lab .function-series-lab-grid > .canvas-panel {
+  grid-area: plots;
+}
+
+.convergence-lab .function-series-lab-grid > .analysis-panel {
+  grid-area: task;
+}
+
+/* Guided uniform-convergence lab: preserve the shared control | plot | analysis layout. */
+.convergence-lab {
+  display: grid;
+  gap: 16px;
+  max-width: 1540px;
+  margin: 0 auto;
+}
+
+.convergence-heading {
+  display: grid;
+  gap: 5px;
+}
+
+.convergence-heading h2,
+.convergence-task h3 {
+  margin: 0;
+  font-weight: 800;
+}
+
+.convergence-heading h2 {
+  font-size: 1.4rem;
+}
+
+.convergence-task h3 {
+  font-size: 1.12rem;
+  line-height: 1.5;
+}
+
+.convergence-lab .function-series-lab-grid {
+  width: 100%;
+  min-height: 0;
+  align-items: start;
+}
+
+.convergence-lab .control-panel,
+.convergence-lab .analysis-panel {
+  gap: 12px;
+}
+
+.convergence-heading p,
+.convergence-subtitle,
+.convergence-muted,
+.convergence-warning,
+.convergence-summary {
+  margin: 0;
+}
+
+.convergence-muted {
+  color: var(--muted);
+}
+
+.convergence-warning {
+  color: var(--rust);
+}
+
+.convergence-lesson-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.convergence-lesson-nav button {
+  min-height: 36px;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.convergence-lesson-nav button[aria-current="step"] {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.convergence-lesson-nav button:focus-visible,
+.convergence-actions button:focus-visible,
+.convergence-hints button:focus-visible,
+.convergence-proof summary:focus-visible,
+.convergence-choice:focus-within,
+.convergence-control input:focus-visible,
+.convergence-control select:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.convergence-entry {
+  display: grid;
+  gap: 14px;
+}
+
+.convergence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+
+.convergence-actions .panel-action {
+  width: auto;
+  min-width: 110px;
+  margin-top: 0;
+}
+
+.convergence-task {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.convergence-step-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.convergence-choices {
+  display: grid;
+  gap: 8px;
+}
+
+.convergence-choices.is-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.convergence-choices.is-compact .convergence-choice {
+  align-items: center;
+  padding: 8px;
+  gap: 5px;
+}
+
+.convergence-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+  cursor: pointer;
+}
+
+.convergence-choice.is-selected {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.convergence-choice input,
+.convergence-toggle input {
+  accent-color: var(--blue);
+}
+
+.convergence-feedback {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+}
+
+.convergence-feedback[data-status="correct"] {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+
+.convergence-feedback[data-status="wrong"] {
+  border-color: var(--rust);
+}
+
+.convergence-feedback[data-status="revealed"] {
+  border-color: var(--gold);
+}
+
+.convergence-feedback p {
+  margin-block: 5px 0;
+}
+
+.convergence-feedback > :first-child {
+  margin-top: 0;
+}
+
+.convergence-hints {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.convergence-hints button,
+.convergence-proof summary {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.convergence-proof {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.convergence-proof summary {
+  display: list-item;
+  width: fit-content;
+}
+
+.convergence-proof > :not(summary) {
+  margin-block: 9px 0;
+}
+
+.convergence-control,
+.convergence-fieldset {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.convergence-control label,
+.convergence-fieldset legend {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.convergence-control > label {
+  display: grid;
+  gap: 7px;
+}
+
+.convergence-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.convergence-control input,
+.convergence-control select {
+  min-width: 0;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+}
+
+.convergence-control input {
+  padding: 6px 9px;
+}
+
+.convergence-control select {
+  width: 100%;
+  padding: 6px 30px 6px 9px;
+}
+
+.convergence-number,
+.convergence-svg {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.convergence-number {
+  text-align: center;
+  font-family: KaTeX_Main, "Times New Roman", serif !important;
+}
+
+.convergence-control-row,
+.convergence-pair-controls,
+.convergence-domain-controls,
+.convergence-view-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.convergence-control-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.convergence-pair-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.convergence-probe-controls {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.convergence-probe-controls > .panel-section {
+  min-width: 0;
+  margin: 0;
+}
+
+.convergence-domain-controls,
+.convergence-view-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.convergence-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.convergence-plots {
+  display: grid;
+  gap: 12px;
+}
+
+.convergence-plot {
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.convergence-plot figcaption {
+  margin-bottom: 7px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.convergence-plot-caption {
+  display: grid;
+  gap: 4px;
+}
+
+.convergence-plot-title {
+  font-size: 0.95rem;
+}
+
+.convergence-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.convergence-axis {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.convergence-axis text {
+  fill: var(--ink);
+  stroke: none;
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 13px;
+}
+
+.convergence-grid-line {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.convergence-curve {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2.5;
+}
+
+.convergence-limit {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.convergence-band {
+  fill: var(--green-soft);
+  stroke: none;
+}
+
+line.convergence-band {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.convergence-envelope {
+  fill: none;
+  stroke: var(--rust);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.convergence-probe {
+  fill: var(--rust);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.convergence-probe-line {
+  stroke: var(--rust);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.convergence-endpoint-open {
+  fill: var(--paper);
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+
+.convergence-endpoint-closed {
+  fill: var(--blue);
+  stroke: var(--blue);
+  stroke-width: 1.5;
+}
+
+.convergence-band-edge {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.convergence-limit-point {
+  fill: var(--paper);
+  stroke: var(--green);
+  stroke-width: 1.5;
+}
+
+.convergence-limit-point.convergence-endpoint-closed {
+  fill: var(--green);
+}
+
+.convergence-svg-label {
+  fill: var(--ink);
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 12px;
+}
+
+.convergence-plot-meta,
+.convergence-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.convergence-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 8px;
+}
+
+.convergence-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.convergence-key::before {
+  width: 20px;
+  border-top: 2px solid var(--line);
+  content: "";
+}
+
+.convergence-key[data-kind="curve"]::before {
+  border-color: var(--blue);
+}
+
+.convergence-key[data-kind="limit"]::before,
+.convergence-key[data-kind="band"]::before {
+  border-color: var(--green);
+  border-top-style: dashed;
+}
+
+.convergence-key[data-kind="band"]::before {
+  height: 9px;
+  border: 1px solid var(--green);
+  background: var(--green-soft);
+}
+
+.convergence-key[data-kind="probe"]::before {
+  border-color: var(--rust);
+  border-top-style: dashed;
 }
 
 .fundamental-activity-main {
@@ -4579,6 +5106,21 @@ nav.chapter-pager {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .function-series-lab-grid .analysis-panel {
+    display: flex;
+  }
+
+  .function-series-lab-grid {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .convergence-lab .function-series-lab-grid {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
+    grid-template-areas:
+      "task task"
+      "controls plots";
+  }
+
   .metrics-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -4670,6 +5212,30 @@ nav.chapter-pager {
   .function-series-lab-grid,
   .analysis-panel {
     grid-template-columns: 1fr;
+  }
+
+  .convergence-lab .function-series-lab-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "task"
+      "controls"
+      "plots";
+  }
+
+  .convergence-pair-controls,
+  .convergence-domain-controls,
+  .convergence-view-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .convergence-probe-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .convergence-probe-controls .convergence-choices.is-compact .convergence-choice {
+    flex-direction: column;
+    padding: 4px;
+    gap: 4px;
   }
 
   .portrait-options-grid,

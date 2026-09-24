@@ -88,6 +88,15 @@ Standard justifications: `לכל השורשים חלק ממשי שלילי` ·
 | Taylor series | טור טיילור |
 | Term-by-term differentiation / integration | גזירה / אינטגרציה איבר־איבר |
 
+## Fourier analysis
+
+| Concept | Hebrew |
+| --- | --- |
+| Fourier transform | התמרת פוריה |
+| Convolution | קונבולוציה |
+| Piecewise-continuous, absolutely integrable function space (the notes' G space) | מרחב הפונקציות הרציפות למקוטעין והאינטגרביליות בהחלט |
+| Piecewise-continuous, square-integrable function space (the notes' G squared space) | מרחב הפונקציות הרציפות למקוטעין וריבוע־אינטגרביליות |
+
 ## Action labels
 
 Same student action, same wording. Use the noun form on chrome buttons, not a
