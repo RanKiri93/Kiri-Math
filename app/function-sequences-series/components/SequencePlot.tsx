@@ -41,6 +41,8 @@ type Props = {
   probeLabel?: string;
   envelope?: boolean;
   title?: string;
+  /** Show x^n outside its selected domain as visual context only. */
+  powerContext?: boolean;
 };
 
 const formatApprox = (value: number): string => {
@@ -48,12 +50,10 @@ const formatApprox = (value: number): string => {
   return Number.isInteger(value) ? String(value) : Number(value.toPrecision(4)).toString();
 };
 
-const PLOT_Y_MIN = -1.2;
 const PLOT_Y_MAX = 1.2;
 
 function sequenceSymbol(id: SequenceId): string {
-  if (id === "near") return "a";
-  if (id === "far") return "b";
+  if (id === "far") return "g";
   return "f";
 }
 
@@ -69,6 +69,7 @@ export function SequencePlot({
   probeLabel,
   envelope = false,
   title,
+  powerContext = false,
 }: Props) {
   const generatedId = useId().replace(/:/g, "");
   const descId = `convergence-plot-desc-${generatedId}`;
@@ -85,6 +86,12 @@ export function SequencePlot({
   const symbol = sequenceSymbol(id);
   const resolutionWarning = oscillationResolutionExceeded(id, n, view);
   const sequenceSegments = sequencePlotSegments(id, n, domain, view);
+  // Context is display-only: the selected interval still governs limits and probes.
+  const contextSegments = powerContext && id === "power"
+    ? [[view.left, Math.min(view.right, domain.left)], [Math.max(view.left, domain.right), view.right]]
+      .filter(([left, right]) => left < right)
+      .flatMap(([left, right]) => sequencePlotSegments(id, n, { left, right, leftClosed: true, rightClosed: true }, view))
+    : [];
   const limitSegments = showLimit ? limitPlotSegments(id, domain, view) : [];
   const epsilonSegments = showLimit && epsilon !== null
     ? epsilonPlotSegments(id, domain, view, epsilon)
@@ -108,8 +115,6 @@ export function SequencePlot({
 
   const xTicks = [view.left, (view.left + view.right) / 2, view.right];
   const yTicks = [-1, -0.5, 0, 0.5, 1];
-  const clippedWarning = sequenceSegments.some((segment) =>
-    segment.some((point) => point.y < PLOT_Y_MIN || point.y > PLOT_Y_MAX));
   return (
     <figure className="convergence-plot">
       <figcaption className="convergence-plot-caption">
@@ -172,6 +177,8 @@ export function SequencePlot({
         </g>
 
         <g clipPath={`url(#${clipId})`}>
+          {clipPlotSegments(contextSegments).map((segment, index) => <path key={`context-${index}`} className="convergence-curve convergence-context-curve" d={pathFor(segment)} />)}
+          {powerContext && id === "power" && [domain.left, domain.right].filter((x) => x > view.left && x < view.right).map((x) => <line key={`boundary-${x}`} className="convergence-domain-boundary" x1={plotX(x, view)} x2={plotX(x, view)} y1={PLOT_MARGIN.top} y2={PLOT_HEIGHT - PLOT_MARGIN.bottom} />)}
            {epsilonSegments.map((segment, index) => segment.length === 2 ? (
              <path key={`band-${index}`} className="convergence-band-edge" d={pathFor(segment)} />
            ) : (
@@ -219,22 +226,30 @@ export function SequencePlot({
         </g>
       </svg>
 
+      <div className="convergence-legend" aria-label="מקרא">
+        <span className="convergence-key" data-kind="curve">איבר הסדרה</span>
+        {powerContext && id === "power" && <span className="convergence-key" data-kind="context">מחוץ לתחום הנבדק</span>}
+        {showLimit && <span className="convergence-key" data-kind="limit">פונקציית הגבול</span>}
+        {showLimit && epsilon !== null && <span className="convergence-key" data-kind="band">רצועת אפסילון</span>}
+        {probeX !== null && <span className="convergence-key" data-kind="probe">נקודת בדיקה</span>}
+      </div>
+
+
       {resolutionWarning && (
         <p className="convergence-warning">התנודות צפופות מדי להצגת מסלול אמין; מוצגת מעטפת התנודות.</p>
       )}
-      {clippedWarning && <p className="convergence-warning">חלק מהערכים מחוץ לטווח האנכי המוצג ונחתכים בגרף.</p>}
 
       {probeX !== null && (
         <div className="convergence-readout" aria-live="polite">
-          <span>{probeLabel ?? "נקודת בדיקה"}: <MathText math={`x${approximationLatex(probeX)}`} /></span>
+          <strong>{probeLabel ?? "נקודת בדיקה"}: <MathText math={`x${approximationLatex(probeX)}`} /></strong>
           {!inDomain ? <span>הנקודה מחוץ לתחום</span> : <>
               {!inView && <span>הנקודה מחוץ לחלון התצוגה</span>}
               {inView && valueAtProbe !== null && Math.abs(valueAtProbe) > PLOT_Y_MAX && <span>ערך הנקודה מחוץ לטווח האנכי</span>}
-              <span>
-                <MathText math={`${symbol}_${n}(${formatApprox(probeX)})${approximationLatex(valueAtProbe!)}`} />
+              <span className="convergence-readout-values" dir="ltr">
+                <MathText math={`${symbol}_{${n}}(${formatApprox(probeX)})${approximationLatex(valueAtProbe!)}`} />
                 {showLimit && limitAtProbe !== null && <>
-                  ; <MathText math={`f(${formatApprox(probeX)})${approximationLatex(limitAtProbe)}`} />
-                  ; <MathText math={`|${symbol}_${n}-f|${approximationLatex(errorAtProbe!)}`} />
+                  ; <MathText math={`${symbol}(${formatApprox(probeX)})${approximationLatex(limitAtProbe)}`} />
+                  ; <MathText math={`|${symbol}_{${n}}-${symbol}|${approximationLatex(errorAtProbe!)}`} />
                 </>}
                 {showLimit && limitAtProbe === null && <>; אין גבול סופי בנקודה</>}
               </span>

@@ -40,6 +40,15 @@ describe("odeCourse chapters", () => {
 });
 
 describe("odeCourse modules", () => {
+  it("registers the four chapter-one subject modules against the notes sections", () => {
+    expect(odeCourse.modules.filter((entry) => entry.chapter === 1).map(({ id, sections }) => [id, sections])).toEqual([
+      ["function-sequences", ["1.1"]],
+      ["function-series", ["1.2"]],
+      ["power-series", ["1.3"]],
+      ["taylor-series", ["1.3"]],
+    ]);
+  });
+
   it("have unique ids", () => {
     const ids = odeCourse.modules.map((entry) => entry.id);
     expect(new Set(ids).size).toBe(ids.length);

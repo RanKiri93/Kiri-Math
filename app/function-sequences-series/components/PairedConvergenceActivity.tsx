@@ -14,7 +14,7 @@ import { MathText } from "./MathText";
 import { SequencePlot, type PlotWindow } from "./SequencePlot";
 
 const IDS: PairId[] = ["near", "far"];
-const SYMBOLS = { near: "a_n", far: "b_n" };
+const SYMBOLS = { near: "f_n", far: "g_n" };
 const RULES: { value: TrackingRule; label: ReactNode }[] = [
   { value: "fixed", label: <MathText math="x_0" /> },
   { value: "reciprocal", label: <MathText math="1/n" /> },
@@ -96,7 +96,7 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
       if (reveal || IDS.every((id) => isPersistentWitness(id, rules[id]))) {
         if (reveal) setRules({ near: "reciprocal", far: "index" });
         setTrackingSolved(true); setContradiction("");
-        setFeedback({ status: reveal ? "revealed" : "correct", content: <>לכל אינדקס, שתי הנקודות נשארות מחוץ לרצועה: <MathText math="a_n(1/n)=b_n(n)=1/2" />.</> });
+        setFeedback({ status: reveal ? "revealed" : "correct", content: <>לכל אינדקס, שתי הנקודות נשארות מחוץ לרצועה: <MathText math="f_n(1/n)=g_n(n)=1/2" />.</> });
       } else setFeedback({ status: "wrong", content: "חריגה באינדקס אחד אינה מספיקה. בדקו איזה כלל שומר על הגובה כשמגדילים את האינדקס." });
       return;
     }
@@ -123,7 +123,7 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
 
   const titles = ["מה יקרה בנקודה קבועה?", "האם נשארת נקודה מחוץ לרצועה?", "מצאו נקודה שתנוע עם האינדקס", "שנו את התחום כדי לקבל התכנסות במידה שווה"];
   const hints = stage === 0 ? ["קבעו נקודה חיובית ובדקו מה קורה כשהאינדקס גדל."]
-    : stage === 1 ? [<>שנו את <MathText math="x" />, לא את <MathText math="n" />.</>, <>ב־<MathText math="a_n" /> נסו <MathText math="x" /> קטן; ב־<MathText math="b_n" /> נסו <MathText math="x" /> גדול.</>]
+    : stage === 1 ? [<>שנו את <MathText math="x" />, לא את <MathText math="n" />.</>, <>ב־<MathText math="f_n" /> נסו <MathText math="x" /> קטן; ב־<MathText math="g_n" /> נסו <MathText math="x" /> גדול.</>]
     : stage === 2 ? ["חפשו כלל שמשנה את המיקום, אבל לא את הגובה.", "כיוון התנועה אינו זהה בשתי הסדרות."]
     : ["איזו דרך מילוט של השגיאה נשארת בתחום?"];
 
@@ -133,7 +133,7 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
       <p>הרצועה: <MathText math="|y|<1/4" /></p>}
     <div className="convergence-probe-controls">{IDS.map((id) => <section key={id} className="panel-section">
       <h3>סדרה <MathText math={SYMBOLS[id]} /></h3>
-      {(!showRules || rules[id] === "fixed") && <NumberControl label={<>נקודה קבועה <MathText math="x_0" /></>} value={fixed[id]} min={0} max={512} onChange={(value) => changeFixed(id, value)} />}
+      {(!showRules || rules[id] === "fixed") && <NumberControl label={<>נקודה קבועה (<MathText math="x_0" />)</>} value={fixed[id]} min={0} max={512} onChange={(value) => changeFixed(id, value)} />}
       {showRules && <Choice compact label="מיקום הנקודה: קבוע או תלוי באינדקס" value={rules[id]} options={RULES} onChange={(value) => {
         setRules((current) => ({ ...current, [id]: value }));
         if (!exploring && stage === 2) { setTrackingSolved(false); setFeedback(null); setContradiction(""); }
@@ -178,16 +178,16 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
     </div>)}
     <details className="convergence-proof"><summary>למה?</summary>
       <p>כאשר <MathText math="\delta>0" /> ו־<MathText math="M<\infty" /> קבועים:</p>
-      <MathText block math="\sup_{x\ge\delta}|a_n(x)|\le\frac1{n\delta}\longrightarrow0" />
-      <MathText block math="\sup_{0\le x\le M}|b_n(x)|\le\frac{M^2}{n^2}\longrightarrow0" />
+      <MathText block math="\sup_{x\ge\delta}|f_n(x)|\le\frac1{n\delta}\longrightarrow0" />
+      <MathText block math="\sup_{0\le x\le M}|g_n(x)|\le\frac{M^2}{n^2}\longrightarrow0" />
       <p>בכל קבוצה חסומה בציר החיובי, הסדרה השנייה מתכנסת במידה שווה. בקבוצה לא־חסומה הסופרמום הוא אחד.</p>
-      <MathText block math="a_n(1/n)=b_n(n)=1/2" />
+      <MathText block math="f_n(1/n)=g_n(n)=1/2" />
     </details>
     <ExploreActions onNext={onNext} onGuided={() => { setExploring(false); setEpsilon(0.25); setFeedback(null); }} />
   </TaskCard> : <TaskCard step={`${guided ? "חקירה מודרכת" : "אתגר"} · ${stage + 1} מתוך 4`} title={titles[stage]}>
     {stage <= 1 && <div>
-      <MathText block math="a_n(x)=\frac{nx}{1+n^2x^2}" />
-      <MathText block math="b_n(x)=\frac{x^2}{n^2+x^2},\quad x\ge0" />
+      <MathText block math="f_n(x)=\frac{nx}{1+n^2x^2}" />
+      <MathText block math="g_n(x)=\frac{x^2}{n^2+x^2},\quad x\ge0" />
     </div>}
     {stage === 0 && <Choice label="התחזית בשתי הסדרות" value={prediction} onChange={(value) => { setPrediction(value); setFeedback(null); }} options={[
       { value: "zero", label: <>הגבול הוא <MathText math="0" /> בשתיהן</> },
@@ -202,7 +202,7 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
     {stage === 2 && <>
       {guided && <p>בחרו <MathText math="x_n" /> לכל סדרה, ואז הגדילו את <MathText math="n" />.</p>}
       {trackingSolved && <>
-        <MathText block math="a_n(1/n)=b_n(n)=\frac12>\frac14" />
+        <MathText block math="f_n(1/n)=g_n(n)=\frac12>\frac14" />
         <Choice label="האם זה סותר התכנסות נקודתית?" value={contradiction} onChange={(value) => { setContradiction(value); setFeedback(null); }} options={[
           { value: "yes", label: "כן" }, { value: "no", label: "לא — הנקודה משתנה עם האינדקס" },
         ]} />
@@ -221,8 +221,8 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
       ? <button type="button" className="panel-action" onClick={nextStage}>{stage === 0 ? "בדיקת כל התחום" : stage === 1 ? "חיפוש כלל מעקב" : "שינוי התחום"}</button>
       : <>
         <details className="convergence-proof"><summary>החסמים שמסבירים את התוצאה</summary>
-          <MathText block math="x\ge\delta:\ |a_n(x)|\le\frac1{n\delta}\longrightarrow0" />
-          <MathText block math="0\le x\le M:\ |b_n(x)|\le\frac{M^2}{n^2}\longrightarrow0" />
+          <MathText block math="x\ge\delta:\ |f_n(x)|\le\frac1{n\delta}\longrightarrow0" />
+          <MathText block math="0\le x\le M:\ |g_n(x)|\le\frac{M^2}{n^2}\longrightarrow0" />
         </details>
         <div className="convergence-actions">
           <button type="button" className="panel-action" onClick={() => setExploring(true)}>חקירה חופשית</button>
@@ -232,7 +232,8 @@ export function PairedConvergenceActivity({ challenge, onComplete, onNext }: Les
     <Hints key={`${stage}-${trackingSolved}`} hints={hints} />
     {stage === 0 && finished && <details className="convergence-proof"><summary>למה הגבול אפס?</summary>
       <p>לכל <MathText math="x_0>0" /> קבוע:</p>
-      <MathText block math="a_n(x_0)=\frac1{1/(nx_0)+nx_0}\longrightarrow0,\quad b_n(x_0)=\frac{x_0^2}{n^2+x_0^2}\longrightarrow0" />
+      <MathText block math="f_n(x_0)=\frac1{1/(nx_0)+nx_0}\longrightarrow0" />
+      <MathText block math="g_n(x_0)=\frac{x_0^2}{n^2+x_0^2}\longrightarrow0" />
       <p>באפס שתי הסדרות מתאפסות בכל אינדקס.</p>
     </details>}
   </TaskCard>} />;

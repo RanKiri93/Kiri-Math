@@ -1,8 +1,8 @@
-import { FunctionSequencesSeriesModule } from "../../../function-sequences-series/FunctionSequencesSeriesModule";
+import { redirect } from "next/navigation";
 import { odeModuleMetadata } from "../../OdeChapterPage";
 
-export const metadata = odeModuleMetadata("function-sequences-series");
+export const metadata = odeModuleMetadata("function-sequences");
 
 export default function OdeFunctionSequencesSeriesPage() {
-  return <FunctionSequencesSeriesModule />;
+  redirect("/ode/1/function-sequences");
 }

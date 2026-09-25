@@ -1,5 +1,14 @@
 # Handoff — Kiri Math convergence lab
 
+## Newest checkpoint — 2026-09-25
+
+The Chapter 1 subject split is structurally complete: four separate module routes are
+registered for notes sections 1.1, 1.2, and 1.3 (Taylor is mapped to 1.3). The function-
+sequences route now opens an activity menu with the convergence lab entry and three
+planned activities; the other three subjects remain placeholders. No new math activities
+were implemented in this structural change. The shared `app/function-sequences-series/`
+folder remains, and the legacy module URLs redirect to `/ode/1/function-sequences`.
+
 Updated: **2026-09-24**. This is the continuation brief for a new agent/session.
 Read `AGENTS.md`, then `ARCHITECTURE.md` §6 and `.agents/engines.md` before changing code.
 

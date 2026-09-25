@@ -2,7 +2,7 @@
 
 מסמך זה מתאר את הארכיטקטורה של האתר: מעטפת הקורסים, מבנה התוכן, המודולים, שכבות הלוגיקה המתמטית, ומערכת העיצוב.
 
-**עדכון אחרון:** 24 בספטמבר 2026
+**עדכון אחרון:** 25 בספטמבר 2026
 
 ---
 
@@ -16,9 +16,11 @@
 /  (הקורסים שלי — כרטיס לכל קורס)
 ├── /ode                                    משוואות דיפרנציאליות רגילות — פאנל «חומר הקורס»
     ├── /ode/1                              פרק 1 · סדרות וטורים של פונקציות
-    │   └── /ode/1/function-sequences-series      סדרות וטורי פונקציות          [בבנייה]
-    │         מבוא │ סדרות פונקציות │ טורי פונקציות │ טורי חזקות │ טורי טיילור
-    │           └── מבוא פעיל; בסדרות פונקציות מעבדת התכנסות פעילה, יתר התוכן placeholders
+    │   ├── /ode/1/function-sequences              סדרות פונקציות                  [בבנייה]
+    │   │     └── תפריט פעילויות: מעבדת התכנסות פעילה; 3 פעילויות מתוכננות
+    │   ├── /ode/1/function-series                טורי פונקציות                    [בבנייה] · placeholder
+    │   ├── /ode/1/power-series                   טורי חזקות                       [בבנייה] · placeholder
+    │   └── /ode/1/taylor-series                  טורי טיילור                      [בבנייה] · placeholder
     ├── /ode/2, /ode/3                      פרקים 2–3 (אין עדיין מודולים)
     ├── /ode/4                              פרק 4 · משוואות מסדר גבוה
     │   ├── /ode/4/linear-homogeneous             משוואות ליניאריות הומוגניות   [בבנייה]
@@ -38,7 +40,7 @@
     └── חומרי קורס: רשימות, סילבוס מורחב ודף נוסחאות
 ```
 
-הכתובות הישנות (`/phase-plane`, `/constant-coefficients-euler`, `/linear-homogeneous`, `/function-sequences-series`) מפנות (307) לנתיב החדש.
+הכתובות הישנות (`/phase-plane`, `/constant-coefficients-euler`, `/linear-homogeneous`, `/function-sequences-series`) מפנות (307) לנתיב החדש; כתובת מודול הסדרות הישנה מפנה ל-`/ode/1/function-sequences`.
 
 ### מצב המודולים
 
@@ -47,7 +49,10 @@
 | מישור פאזה | פעיל | שלם: מבוא, מעבדה, הרכבת מטריצה, תרגול |
 | מקדמים קבועים ואוילר | פעיל | שלם: מבוא, הרכבה, שלושה מצבי תרגול |
 | ליניאריות הומוגניות | **בבנייה** | מבוא ומעבדת הרכבה (סדר 2) פעילים; תרגול השלמה למערכת יסודית פעיל; לשונית וורונסקיאן placeholder; הורדת סדר כללית ויציבות עדיין תיאורטיות בלבד |
-| סדרות וטורי פונקציות | **בבנייה** | מעטפת, ניווט ומבוא פעילים; לשונית סדרות פונקציות כוללת מעבדת התכנסות ראשונה. שלוש הלשוניות האחרות placeholders; אין CAS |
+| סדרות פונקציות | **בבנייה** | תפריט פעילויות ומעבדת התכנסות פעילים; שלוש פעילויות נוספות מתוכננות |
+| טורי פונקציות | **בבנייה** | placeholder |
+| טורי חזקות | **בבנייה** | placeholder |
+| טורי טיילור | **בבנייה** | placeholder |
 | קורס טורי פוריה והתמרות אינטגרליות | ללא מודולים | חומרי הקורס וארבעת פרקי הרשימות פעילים; אין מודולים אינטראקטיביים |
 
 ### טכנולוגיות
@@ -79,7 +84,9 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 | `/ode/5/phase-plane` | `app/ode/5/phase-plane/page.tsx` | טוען את `PhasePlaneModule` |
 | `/ode/4/constant-coefficients-euler` | `app/ode/4/constant-coefficients-euler/page.tsx` | טוען את `ConstantCoefficientsEulerModule` (3 לשוניות) |
 | `/ode/4/linear-homogeneous` | `app/ode/4/linear-homogeneous/page.tsx` | טוען את `LinearHomogeneousModule` (4 לשוניות) |
-| `/ode/1/function-sequences-series` | `app/ode/1/function-sequences-series/page.tsx` | טוען את `FunctionSequencesSeriesModule` (5 לשוניות; לשונית סדרות פונקציות כוללת מעבדת התכנסות) |
+| `/ode/1/function-sequences` | `app/ode/1/function-sequences/page.tsx` | טוען את `SubjectModule` מהתיקייה המשותפת; תפריט מציג מעבדת התכנסות ועוד 3 פעילויות מתוכננות |
+| `/ode/1/function-series`, `/ode/1/power-series`, `/ode/1/taylor-series` | `app/ode/1/{function-series,power-series,taylor-series}/page.tsx` | טוענים את `SubjectModule` עם הנושא המתאים; תוכן placeholder |
+| `/ode/1/function-sequences-series` | `app/ode/1/function-sequences-series/page.tsx` | הפניה שרתית ל-`/ode/1/function-sequences` (307) |
 | `/fourier` | `app/fourier/page.tsx` | `CourseShell` ו-`CourseMaterialsPanel` עם איור קורס ייעודי |
 | `/fourier/1` … `/fourier/4` | `app/fourier/{1..4}/page.tsx` | עמוד פרק דרך `FourierChapterPage` ו-`ChapterPanel`; איור ייעודי לכל פרק |
 | `/phase-plane`, `/constant-coefficients-euler`, `/linear-homogeneous`, `/function-sequences-series` | `page.tsx` בתיקייה הישנה | `redirect()` שרתי (307) לנתיב החדש תחת `/ode/N/` |
@@ -122,7 +129,7 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 
 | קובץ | תפקיד |
 |---|---|
-| `course.ts` | `odeCourse`: קוד, שם, תיאור, הרשימות, הפרקים, 4 מודולים (פרק, סעיפים, סטטוס, `href`) ו-3 משאבים |
+| `course.ts` | `odeCourse`: קוד, שם, תיאור, הרשימות, הפרקים, 7 מודולים (פרק, סעיפים, סטטוס, `href`) ו-3 משאבים |
 | `notesToc.ts` | **נוצר אוטומטית** מ-`main.toc` ע״י `scripts/sync-course-notes.ts`: 6 פרקים, 35 סעיפים, `notesPageOffset = 4`. לא עורכים ידנית |
 | `OdeChapterPage.tsx` | עמוד פרק משותף ל-`/ode/1..6`, וגם `odeChapterMetadata` / `odeModuleMetadata` |
 | `OdeModuleBreadcrumbs.tsx` | ה-breadcrumbs שבתוך ה-topbar של ארבעת המודולים |
@@ -148,7 +155,10 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 
 | מודול | פרק | סעיפים | סטטוס |
 |---|---|---|---|
-| סדרות וטורי פונקציות | 1 | 1.1–1.3 | בבנייה |
+| סדרות פונקציות | 1 | 1.1 | בבנייה |
+| טורי פונקציות | 1 | 1.2 | בבנייה |
+| טורי חזקות | 1 | 1.3 | בבנייה |
+| טורי טיילור | 1 | 1.3 | בבנייה |
 | משוואות ליניאריות הומוגניות | 4 | 4.2–4.3 | בבנייה |
 | מקדמים קבועים ומשוואות אוילר | 4 | 4.4–4.6 | פעיל |
 | מישור הפאזה | 5 | 5.2–5.3 | פעיל |
@@ -390,34 +400,33 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 ## 6. מודול סדרות וטורי פונקציות
 
-**תיקייה:** `app/function-sequences-series/` — מודול שכבתי במבנה דומה למודולי אוילר וההומוגניות. **נתיב:** `/ode/1/function-sequences-series`. מסומן בעמוד פרק 1 כ«מודול בבנייה».
+**תיקייה משותפת:** `app/function-sequences-series/` — רכיבי הנושא למודולי פרק 1; כל אחד מארבעת הנושאים רשום בנפרד בעמוד הפרק. **נתיבים:** `/ode/1/function-sequences`, `/ode/1/function-series`, `/ode/1/power-series`, `/ode/1/taylor-series`. כולם מסומנים «בבנייה».
 
 המודול עוסק בחלק המתמטי הפותח של הקורס: סדרות פונקציות, טורי פונקציות, טורי חזקות וטורי טיילור.
 
-המעטפת היא `FunctionSequencesSeriesModule.tsx`, שנטענת מ-`app/ode/1/function-sequences-series/page.tsx`. המעטפת אחראית ל-layout, ל-topbar ולמצב הלשוניות בלבד (`useState` מקומי; רענון מחזיר ללשונית הראשונה). אין Context, localStorage או פרמטרים ב-URL.
+`SubjectModule.tsx` הוא shell משותף, נטען מדפי הנושא השונים בפרק 1. הוא מציג topbar ו-breadcrumbs, ובנושא סדרות פונקציות תפריט פעילויות עם מצב מקומי לפתיחת המעבדה וחזרה לתפריט. יתר שלושת הנושאים מציגים את רכיבי ה-placeholder שלהם. `FunctionSequencesSeriesModule.tsx`,‏ `FunctionSequencesSeriesIntro.tsx`,‏ `FunctionSequencesSection.tsx` ו-`types.ts` הישנים הוסרו; הנתיבים הישנים מפנים לנושא סדרות הפונקציות.
 
 ### לשוניות
 
 | לשונית | קומפוננטה | מצב |
 |---|---|---|
-| מבוא (`intro`) | `FunctionSequencesSeriesIntro` | **פעיל** — מפת דרך של ארבעה פרקים, לא ספר לימוד |
-| סדרות פונקציות (`function-sequences`) | `FunctionSequencesSection` → `ConvergenceLab` | **פעיל חלקית** — מעבדת התכנסות נקודתית ובמידה שווה |
-| טורי פונקציות (`function-series`) | `FunctionSeriesSection` | **placeholder מתוכנן** |
-| טורי חזקות (`power-series`) | `PowerSeriesSection` | **placeholder מתוכנן** |
-| טורי טיילור (`taylor-series`) | `TaylorSeriesSection` | **placeholder מתוכנן** |
+| סדרות פונקציות (`function-sequences`) | `SubjectModule` → תפריט פעילויות / `ConvergenceLab` | **פעיל חלקית** — מעבדת התכנסות; שלוש פעילויות נוספות מתוכננות |
+| טורי פונקציות (`function-series`) | `SubjectModule` → `FunctionSeriesSection` | **placeholder** |
+| טורי חזקות (`power-series`) | `SubjectModule` → `PowerSeriesSection` | **placeholder** |
+| טורי טיילור (`taylor-series`) | `SubjectModule` → `TaylorSeriesSection` | **placeholder** |
 
-שלוש לשוניות התוכן `function-series`, `power-series`, `taylor-series` משתמשות ב-`SectionPlaceholder` משותף: כותרת, תיאור קצר עם נוסחאות, רשימת «פעילויות מתוכננות», ומסגרת «פעילות אינטראקטיבית / בבנייה». לשונית סדרות הפונקציות כבר כוללת מעבדת התכנסות; ציורה הוא SVG מקורי, לא Canvas ולא תלות plotter.
+שלושת הנושאים `function-series`, `power-series`, `taylor-series` מציגים placeholders עם תיאור קצר ופעילויות מתוכננות. בנושא סדרות הפונקציות מוצג תפריט פעילות נפרד: מעבדת ההתכנסות פעילה ושלוש פעילויות על רציפות, אינטגרל ונגזרת מתוכננות. ציור המעבדה הוא SVG מקורי, לא Canvas ולא תלות plotter.
 
 ### מעבדת התכנסות
 
-המעבדה בוחנת התכנסות נקודתית מול במידה שווה דרך ארבע פעילויות: היכרות עם `x/n`, משפחת `x^n` על תחומים משתנים, תנודות `sin(nx)/n`, והשוואה בין `nx/(1+n²x²)` לבין `x²/(n²+x²)`. הפעילות הזוגית משלבת תחזית מודרכת, חיפוש ועדות נגדית, ניסוח מושגי ותיקון תחום; אפשר לדלג ישירות לאתגר, להציג רמזים או לעבור לחקירה חופשית. אין יצירת שאלות אקראיות.
+המעבדה בוחנת התכנסות נקודתית מול במידה שווה דרך ארבע פעילויות: היכרות עם שלוש דוגמאות לבחירה — `x/n` על `[0,1]`,‏ `x+sin(nx)/n` על `[-0.5,0.5]`, ו-`x^n` על `[0,0.5]` — עם בדיקת רצועה אופציונלית; משפחת `x^n` על תחומים משתנים; תנודות `sin(nx)/n`; והשוואה בין `nx/(1+n²x²)` לבין `x²/(n²+x²)`. בפעילות החזקה הגרף ממשיך חזותית גם מחוץ לתחום שנבחר, באמצעות דגימה וחיתוך קיימים, אך התחום הנבחר בלבד קובע את גבולותיו ואת בדיקת הנקודה. הפעילות הזוגית משלבת תחזית מודרכת, חיפוש ועדות נגדית, ניסוח מושגי ותיקון תחום; אפשר לדלג ישירות לאתגר, להציג רמזים או לעבור לחקירה חופשית. אין יצירת שאלות אקראיות.
 
 | רכיב | תפקיד |
 |---|---|
-| `ConvergenceLab.tsx` | בחירת פעילויות, ניווט והתקדמות בזיכרון בלבד |
-| `SimpleConvergenceActivities.tsx`, `PowerConvergenceActivity.tsx`, `PairedConvergenceActivity.tsx` | משימות, בקרות, משוב ורמזים לארבע הפעילויות |
-| `ConvergenceUI.tsx` | רכיבי UI משותפים למעבדה |
-| `SequencePlot.tsx` | תצוגת גרפים מקורית ב-SVG |
+| `ConvergenceLab.tsx` | הגדרות פורמליות לתכנסות נקודתית (גם בצורת גבול) ובמידה שווה, עם פרשנויות מחוץ לתיבות ההגדרה; כניסה לחימום, דילוג ואתגר ישיר מתוך ניווט הפעילויות, והתקדמות בזיכרון בלבד |
+| `SimpleConvergenceActivities.tsx`, `PowerConvergenceActivity.tsx`, `PairedConvergenceActivity.tsx` | משימות, בקרות, משוב ורמזים; ההיכרות מציעה שלוש דוגמאות ובדיקת רצועה רשות; `IndexControl` משותף מציע בחירת `n` בגרירה בטווח 1–256 לצד קלט מספרי מדויק, ושאר הקלטים נשארים מדויקים |
+| `ConvergenceUI.tsx` | רכיבי UI משותפים למעבדה, בהם `IndexControl` |
+| `SequencePlot.tsx` | תצוגת גרפים מקורית ב-SVG; `powerContext` מציג המשך של `x^n` מחוץ לתחום הנבחר בהקשר חזותי בלבד |
 
 | שכבת מתמטיקה (`math/`) | תפקיד |
 |---|---|
@@ -430,7 +439,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 | `convergence.test.ts`, `convergenceVerification.test.ts` | סיווג ושגיאות אנליטיים ואימותי התכנסות |
 | `convergenceActivity.test.ts` | בדיקות האינטראקציה הטהורות |
 | `sequencePlot.test.ts` | גאומטריית הגרף ותנאי תצוגה |
-| `components/convergenceRendering.test.ts` | SSR: הסתרת גבול לפני תחזית, קצה פתוח/סגור, readout מחוץ לחלון ומעטפת תנודות |
+| `components/convergenceRendering.test.ts` | SSR: הסתרת גבול לפני תחזית, קצה פתוח/סגור, readout מחוץ לחלון, מעטפת תנודות והמשך חזותי של `x^n` בלי לשנות את התחום הפעיל |
 
 ### מבוא
 
@@ -446,9 +455,8 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 | קובץ | תפקיד |
 |---|---|
 | `MathText.tsx`, `DisplayMath.tsx` | עותק של רינדור KaTeX ממודול אוילר (ראו §7) |
-| `FunctionSequencesSeriesIntro.tsx` | מפת דרך של המודול |
-| `SectionPlaceholder.tsx` | מעטפת משותפת לשלוש לשוניות התוכן שטרם מומשו |
-| `FunctionSequencesSection.tsx`, `FunctionSeriesSection.tsx`, `PowerSeriesSection.tsx`, `TaylorSeriesSection.tsx` | הפניית סדרות פונקציות למעבדה; שלוש האחרות תוכן placeholder |
+| `SubjectModule.tsx` | shell משותף לארבעת הנושאים; תפריט הפעילויות ומעבר למעבדת ההתכנסות עבור סדרות פונקציות |
+| `FunctionSeriesSection.tsx`, `PowerSeriesSection.tsx`, `TaylorSeriesSection.tsx` | תוכן placeholder לשלושת הנושאים שטרם מומשו |
 
 `math/mathTypography.ts` הוא עותק של עזרי מחלקות CSS, שנדרש ל-`MathText`/`DisplayMath`. קיימת שכבת `math/` עבור מעבדת ההתכנסות, אך אין תיקיית `practice/` נפרדת: בדיקות התשובה והאינטראקציה הטהורות נמצאות ב-`math/convergenceActivity.ts`.
 

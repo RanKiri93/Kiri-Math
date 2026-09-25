@@ -45,7 +45,7 @@ export function NumberControl({ label, value, onChange, min, max, step = "any" }
   const valid = draft.trim() !== "" && Number.isFinite(number) && number >= min && number <= max
     && (step !== 1 || Number.isInteger(number));
   return <div className="convergence-control">
-    <label htmlFor={id}>{label}</label>
+    <label htmlFor={id}><span className="convergence-control-label">{label}</span></label>
     <input id={id} type="number" className="convergence-number" dir="ltr" min={min} max={max} step={step}
       value={draft} aria-invalid={!valid} aria-describedby={!valid ? `${id}-error` : undefined}
       onChange={(event) => {
@@ -62,8 +62,14 @@ export function NumberControl({ label, value, onChange, min, max, step = "any" }
 }
 
 export function IndexControl({ n, onChange }: { n: number; onChange: (n: number) => void }) {
+  const sliderId = useId();
   return <section className="panel-section">
-    <NumberControl label={<>אינדקס <MathText math="n" /></>} value={n} min={1} max={MAX_DISPLAY_N} step={1} onChange={onChange} />
+    <NumberControl label={<>אינדקס (<MathText math="n" />)</>} value={n} min={1} max={MAX_DISPLAY_N} step={1} onChange={onChange} />
+    <div className="convergence-index-slider">
+      <label htmlFor={sliderId}>שינוי האינדקס בגרירה</label>
+      <input id={sliderId} type="range" dir="ltr" min={1} max={MAX_DISPLAY_N} step={1} value={n}
+        onChange={(event) => onChange(Number(event.target.value))} />
+    </div>
     <div className="convergence-actions">
       <button className="panel-action" type="button" onClick={() => onChange(Math.min(MAX_DISPLAY_N, n * 2))} disabled={n === MAX_DISPLAY_N}>הכפלת האינדקס</button>
       <button className="panel-action secondary" type="button" onClick={() => onChange(1)} disabled={n === 1}>חזרה להתחלה</button>
@@ -74,7 +80,7 @@ export function IndexControl({ n, onChange }: { n: number; onChange: (n: number)
 
 export function EpsilonControl({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   return <div className="convergence-control">
-    <label>רוחב הרצועה <MathText math="\varepsilon" />
+    <label><span className="convergence-control-label">רוחב הרצועה (<MathText math="\varepsilon" />)</span>
       <select className="convergence-number" dir="ltr" value={value} onChange={(event) => onChange(Number(event.target.value))}>
         <option value={0.5}>0.5</option><option value={0.25}>0.25</option><option value={0.1}>0.1</option><option value={0.05}>0.05</option>
       </select>
@@ -114,12 +120,6 @@ export function LabWorkspace({ controls, plots, task }: { controls: ReactNode; p
     <aside className="control-panel" aria-label="בקרת החקירה">{controls}</aside>
     <section className="canvas-panel" aria-label="המחשת הסדרות">
       <div className="convergence-plots">{plots}</div>
-      <div className="convergence-legend" aria-label="מקרא">
-        <span className="convergence-key" data-kind="curve">איבר הסדרה</span>
-        <span className="convergence-key" data-kind="limit">גבול (כשמוצג)</span>
-        <span className="convergence-key" data-kind="probe">נקודת בדיקה</span>
-      </div>
-      <p className="convergence-muted">חלון התצוגה אינו התחום כולו. הגרף ממחיש; הנימוק מתייחס לכל הסדרה.</p>
     </section>
   </div>;
 }

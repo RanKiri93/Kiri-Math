@@ -57,7 +57,7 @@ export function PowerConvergenceActivity({ onComplete, onNext }: LessonProps) {
   return <LabWorkspace controls={<>
     <IndexControl n={n} onChange={setN} />
     <section className="panel-section">
-      <NumberControl label={<>נקודת בדיקה <MathText math="x_0" /></>} value={probe} min={0} max={2} onChange={setProbe} />
+      <NumberControl label={<>נקודת בדיקה (<MathText math="x_0" />)</>} value={probe} min={0} max={2} onChange={setProbe} />
       <EpsilonControl value={epsilon} onChange={setEpsilon} />
       <p className="convergence-muted">הנקודה נשארת קבועה כשמשנים את האינדקס.</p>
     </section>
@@ -69,7 +69,7 @@ export function PowerConvergenceActivity({ onComplete, onNext }: LessonProps) {
       </div>
       <label className="convergence-toggle"><input type="checkbox" checked={closed} onChange={(event) => setClosed(event.target.checked)} />הכללת הקצה הימני</label>
     </section>}
-  </>} plots={<SequencePlot id="power" n={n} domain={domain} view={{ left: 0, right: 2 }} epsilon={finished || exploring ? epsilon : null}
+  </>} plots={<SequencePlot id="power" n={n} domain={domain} view={{ left: 0, right: 2 }} powerContext epsilon={finished || exploring ? epsilon : null}
     showLimit={finished || exploring} probeX={probe} onProbeChange={setProbe} />}
   task={exploring ? <TaskCard step="חקירה חופשית" title="האם הוצאת הקצה מספיקה?">
     <p>השוו בין קצה קטן מאחד לבין קצה שאינו כלול בתחום.</p>
