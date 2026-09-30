@@ -40,7 +40,16 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    // Authenticated HTML/RSC, redirects, and PDFs must never enter shared caches.
+    if (url.pathname === "/" || /^\/(ode|fourier|courses|login|access-required|api\/auth)(\/|$)/.test(url.pathname)) {
+      const headers = new Headers(response.headers);
+      headers.set("Cache-Control", "private, no-store, max-age=0");
+      headers.set("X-Content-Type-Options", "nosniff");
+      headers.set("Referrer-Policy", "same-origin");
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    }
+    return response;
   },
 };
 

@@ -16,9 +16,9 @@ describe("subject module landing pages", () => {
     expect(html).toContain('class="module-notes-list"');
   });
 
-  it("shows one available activity and three specifically described planned activities", () => {
+  it("shows the available activities and three specifically described planned activities", () => {
     const html = renderToStaticMarkup(createElement(SubjectModule, { subject: "function-sequences" }));
-    expect(html).toContain("פתיחת המעבדה");
+    expect(html.match(/כניסה לפעילות/g)).toHaveLength(2);
     expect(html).toContain("רציפות פונקציית הגבול");
     expect(html).toContain("גבול ואינטגרל");
     expect(html).toContain("גבול ונגזרת");
@@ -27,5 +27,17 @@ describe("subject module landing pages", () => {
     expect(html).toContain("מאפשרים לגזור את פונקציית הגבול");
     expect(html.match(/פעילות מתוכננת/g)).toHaveLength(3);
     expect(html.match(/בבנייה/g)).toHaveLength(3);
+  });
+});
+
+describe("function-sequences activity menu", () => {
+  it("offers the supremum-test activity after the lab", () => {
+    const html = renderToStaticMarkup(createElement(SubjectModule, { subject: "function-sequences" }));
+    expect(html).toContain("1. התכנסות נקודתית ובמידה שווה");
+    expect(html).toContain("2. שימוש במבחן הסופרמום");
+    expect(html).toContain("למציאת הסופרמום במפורש");
+    expect(html.indexOf("2. שימוש במבחן הסופרמום")).toBeGreaterThan(html.indexOf("כניסה לפעילות"));
+    expect(html).not.toContain("פעילות זמינה");
+    expect(html).not.toContain("נקודה קריטית");
   });
 });

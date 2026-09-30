@@ -1,139 +1,171 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { isPlainLeftClick } from "./clicks";
+import { startCourseEntryMotion, type CourseEntryMotion } from "./courseEntryMotion";
 
-const EXPAND_MS = 450;
-const DRAW_AT_MS = 300;
-const NAVIGATE_AT_MS = 1500;
-const REDUCED_FADE_MS = 150;
-
-type CardRect = { top: number; left: number; width: number; height: number };
-
-type Run = { rect: CardRect; reduced: boolean };
-
-export function CourseEntry({
-  href,
-  title,
-  cover,
-  className,
-  children,
-}: {
+type Entry = {
   href: string;
+  from: string;
   title: string;
-  cover: ReactNode;
-  className?: string;
-  children: ReactNode;
-}) {
-  const router = useRouter();
-  const prefetched = useRef(false);
-  const left = useRef(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const [run, setRun] = useState<Run | null>(null);
+  code: string;
+  cover: HTMLElement;
+  rect: DOMRect;
+  keyboard: boolean;
+};
 
-  function prefetch() {
-    if (prefetched.current) return;
-    prefetched.current = true;
+function entryLink(target: EventTarget | null) {
+  if (!(target instanceof Element)) return null;
+  const link = target.closest<HTMLAnchorElement>("a[data-course-entry]");
+  if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return null;
+  return link.origin === window.location.origin ? link : null;
+}
+
+/** Lives in the root layout so the cover can dissolve AFTER the destination commits.
+ * Only annotated, available dashboard course links participate; all links retain hrefs.
+ */
+export function CourseEntry({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [entry, setEntry] = useState<Entry | null>(null);
+  const active = useRef(false);
+  const prefetched = useRef(new Set<string>());
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
+  const artRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
+  const motion = useRef<CourseEntryMotion | null>(null);
+
+  function prefetch(target: EventTarget | null) {
+    const link = entryLink(target);
+    if (!link || prefetched.current.has(link.href)) return;
+    prefetched.current.add(link.href);
     try {
-      void router.prefetch(href);
+      void router.prefetch(link.pathname);
     } catch {
-      // Prefetch is an optimization. The click still navigates.
+      // Prefetch is optional; a normal navigation remains available.
     }
   }
 
-  const leave = useCallback(() => {
-    if (left.current) return;
-    left.current = true;
+  useLayoutEffect(() => {
+    if (!entry) return;
+    const overlay = overlayRef.current!;
+    const art = artRef.current!;
+    // Clone decorative art only, never an interactive card or its accessible text.
+    // The original stays in place, preserving the dashboard's geometry throughout.
+    art.replaceChildren(entry.cover);
+    const navigate = () => {
+      try { router.push(entry.href); }
+      catch { window.location.assign(entry.href); }
+    };
+    const finish = () => {
+      active.current = false;
+      setEntry(null);
+      if (entry.keyboard && window.location.pathname === entry.href && document.activeElement === document.body) {
+        const heading = document.querySelector<HTMLElement>("main h1");
+        if (heading) {
+          const tabIndex = heading.getAttribute("tabindex");
+          heading.tabIndex = -1;
+          heading.focus({ preventScroll: true });
+          // Removing tabindex while focused sends focus back to body in Chromium.
+          heading.addEventListener("blur", () => {
+            if (tabIndex === null) heading.removeAttribute("tabindex");
+            else heading.setAttribute("tabindex", tabIndex);
+          }, { once: true });
+        }
+      }
+    };
     try {
-      router.push(href);
+      motion.current = startCourseEntryMotion({
+        overlay,
+        paper: paperRef.current!,
+        art,
+        heading: headingRef.current!,
+        source: entry.rect,
+        compact: window.matchMedia("(max-width: 820px)").matches,
+        navigate,
+        finish,
+      });
     } catch {
-      window.location.assign(href);
+      // An unavailable animation API must never strand navigation behind a cover.
+      navigate();
+      finish();
     }
-  }, [href, router]);
+    const skip = () => motion.current?.skip();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" || event.key === "Tab") skip();
+    };
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", skip);
+    window.addEventListener("pagehide", skip);
+    preference.addEventListener("change", skip);
+    return () => {
+      motion.current?.cancel();
+      motion.current = null;
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", skip);
+      window.removeEventListener("pagehide", skip);
+      preference.removeEventListener("change", skip);
+    };
+  }, [entry, router]);
 
   useEffect(() => {
-    if (!run) return;
-    const overlay = overlayRef.current;
-    document.documentElement.classList.add("course-transition-open");
-    const timers: number[] = [];
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") leave();
-    };
-    window.addEventListener("keydown", onKey);
+    if (!entry || pathname === entry.from) return;
+    // Pathname updates with the new React tree, not when navigation is requested.
+    // Authentication redirects and unrelated navigations need no identification beat.
+    if (pathname === entry.href) motion.current?.reveal();
+    else motion.current?.skip();
+  }, [entry, pathname]);
 
-    if (run.reduced) {
-      overlay?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: REDUCED_FADE_MS, easing: "ease", fill: "forwards" });
-      timers.push(window.setTimeout(leave, REDUCED_FADE_MS));
-    } else if (overlay) {
-      const top = run.rect.top;
-      const right = window.innerWidth - (run.rect.left + run.rect.width);
-      const bottom = window.innerHeight - (run.rect.top + run.rect.height);
-      const leftInset = run.rect.left;
-      overlay.animate(
-        [
-          { clipPath: `inset(${top}px ${right}px ${bottom}px ${leftInset}px round 8px)` },
-          { clipPath: "inset(0px round 0px)" },
-        ],
-        { duration: EXPAND_MS, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "forwards" },
-      );
-      timers.push(window.setTimeout(() => overlay.classList.add("is-drawing"), DRAW_AT_MS));
-      timers.push(window.setTimeout(leave, NAVIGATE_AT_MS));
+  function onClick(event: MouseEvent<HTMLDivElement>) {
+    if (active.current) {
+      motion.current?.skip();
+      if (isPlainLeftClick(event) && entryLink(event.target)) event.preventDefault();
+      return;
     }
-
-    return () => {
-      document.documentElement.classList.remove("course-transition-open");
-      window.removeEventListener("keydown", onKey);
-      for (const timer of timers) window.clearTimeout(timer);
-    };
-  }, [run, leave]);
-
-  function onClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (!isPlainLeftClick(event) || run) return;
+    const link = entryLink(event.target);
+    if (!link || !isPlainLeftClick(event)) return;
+    prefetch(link);
+    // Reduced motion and older browsers keep immediate, ordinary link navigation.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !Element.prototype.animate) return;
+    const cover = link.querySelector<HTMLElement>(".course-card-art");
+    const title = link.querySelector("h2")?.textContent;
+    if (!cover || !title) return;
+    const rect = cover.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
     event.preventDefault();
-    const rect = event.currentTarget.getBoundingClientRect();
-    setRun({
-      rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height },
-      reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    active.current = true;
+    setEntry({
+      href: link.pathname,
+      from: pathname,
+      title,
+      code: link.querySelector(".course-card-code")?.textContent ?? "",
+      cover: cover.cloneNode(true) as HTMLElement,
+      rect,
+      keyboard: event.detail === 0,
     });
   }
 
-  const clip =
-    run && !run.reduced
-      ? `inset(${run.rect.top}px ${window.innerWidth - (run.rect.left + run.rect.width)}px ${window.innerHeight - (run.rect.top + run.rect.height)}px ${run.rect.left}px round 8px)`
-      : undefined;
-  const titleStyle: CSSProperties | undefined = run
-    ? run.rect.left >= 420
-      ? { top: 0, bottom: 0, left: 0, width: Math.max(0, run.rect.left - 28) }
-      : { top: run.rect.top + (run.rect.width * 300) / 480 + 36, left: 24, right: 24 }
-    : undefined;
-
   return (
     <>
-      <a className={className} href={href} onClick={onClick} onPointerEnter={prefetch} onFocus={prefetch}>
-        {run ? null : cover}
+      <div className="course-entry-root" onClick={onClick} onPointerOver={(event) => prefetch(event.target)} onFocus={(event) => prefetch(event.target)}>
         {children}
-      </a>
-      {run
-        ? createPortal(
-            <div
-              ref={overlayRef}
-              className="course-entry-overlay"
-              aria-hidden="true"
-              onClick={leave}
-              style={run.reduced ? { opacity: 0 } : { clipPath: clip }}
-            >
-              <div className="course-entry-art" style={{ top: run.rect.top, left: run.rect.left, width: run.rect.width }}>
-                {cover}
-              </div>
-              <p className="course-entry-title" style={titleStyle}>
-                {title}
-              </p>
-            </div>,
-            document.body,
-          )
-        : null}
+      </div>
+      {entry ? createPortal(
+        <div ref={overlayRef} className="course-entry-overlay" aria-hidden="true" dir="rtl">
+          <div ref={paperRef} className="course-entry-paper" />
+          <div className="course-entry-scene">
+            <div ref={artRef} className="course-entry-art" />
+            <div ref={headingRef} className="course-entry-heading">
+              <span className="course-entry-code" dir="ltr">{entry.code}</span>
+              <p className="course-entry-title">{entry.title}</p>
+            </div>
+          </div>
+        </div>, document.body,
+      ) : null}
     </>
   );
 }

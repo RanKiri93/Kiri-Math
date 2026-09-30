@@ -32,7 +32,12 @@ export const MAX_INITIAL_GENERATION_ATTEMPTS = 32;
 export const EASY_INITIAL_COEFFICIENT_POOL = [-2, -1, 0, 1, 2] as const;
 export const DEFAULT_INITIAL_COEFFICIENT_POOL = [-3, -2, -1, 0, 1, 2, 3] as const;
 
-export const EASY_REAL_ROOTS = [-3, -2, -1, 1, 2, 3] as const;
+/**
+ * Distinct nonzero integers for the easy tier. Size 8 (not 6) so a degree-6
+ * draw is a 6-subset rather than the unique permutation of a 6-pool. Zero is
+ * excluded on purpose: the root 0 is a medium/hard method distinction.
+ */
+export const EASY_REAL_ROOTS = [-4, -3, -2, -1, 1, 2, 3, 4] as const;
 export const DEFAULT_REAL_ROOTS = [-3, -2, -1, 0, 1, 2, 3] as const;
 
 export const COMPLEX_POOL_MEDIUM = [

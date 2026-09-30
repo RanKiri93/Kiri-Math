@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   difficultyLabels,
   emptyQuizStats,
@@ -27,10 +27,9 @@ import {
 } from "../practice/rootEvaluation";
 import {
   createInitialEulerExerciseState,
-  recordAbandonedQuestion,
   recordAssistedCompletion,
   recordIndependentCompletion,
-  recordQuestionStarted,
+  recordQuestionAbandon,
 } from "../practice/stats";
 import {
   defaultStabilityAnswer,
@@ -133,19 +132,10 @@ export function EulerTransformationPractice() {
   const [yBasisResult, setYBasisResult] = useState<BasisCheckResult | null>(null);
   const [stabilityResult, setStabilityResult] = useState<StabilityEvaluationResult | null>(null);
 
-  const initialStartedRef = useRef(false);
-
   const question = useMemo(
     () => buildEulerTransformationPracticeQuestion(degree, difficulty, seed),
     [degree, difficulty, seed],
   );
-
-  useEffect(() => {
-    if (!initialStartedRef.current) {
-      initialStartedRef.current = true;
-      setStats((current) => recordQuestionStarted(current));
-    }
-  }, []);
 
   const transformedLocked = !exercise.transformedEquationEverUnlocked;
   const rootsLocked = !exercise.rootsEverUnlocked;
@@ -334,16 +324,13 @@ export function EulerTransformationPractice() {
     nextIncludeStability?: boolean;
     abandonIncomplete?: boolean;
   }) => {
-    if (abandonIncomplete && !exercise.completed) {
-      setStats((current) => recordAbandonedQuestion(current));
-    }
+    setStats((current) => recordQuestionAbandon(current, exercise, abandonIncomplete));
     setDegree(nextDegree);
     setDifficulty(nextDifficulty);
     setIncludeStability(nextIncludeStability);
     setActiveIncludeStability(nextIncludeStability);
     setSeed((current) => current + seedStep);
     clearAnswerOnly(nextDegree);
-    setStats((current) => recordQuestionStarted(current));
   };
 
   const checkPolynomial = () => {
@@ -355,6 +342,8 @@ export function EulerTransformationPractice() {
     if (result.isCorrect) {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
         polynomialStatus: "correct",
         transformedEquationStatus: current.transformedEquationEverUnlocked
           ? current.transformedEquationStatus
@@ -362,7 +351,7 @@ export function EulerTransformationPractice() {
         transformedEquationEverUnlocked: true,
       }));
     } else {
-      setExercise((current) => ({ ...current, polynomialStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, polynomialStatus: "incorrect" }));
     }
   };
 
@@ -378,6 +367,7 @@ export function EulerTransformationPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       polynomialStatus: "revealed",
       transformedEquationStatus: current.transformedEquationEverUnlocked
         ? current.transformedEquationStatus
@@ -399,12 +389,14 @@ export function EulerTransformationPractice() {
     if (result.isCorrect) {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
         transformedEquationStatus: "correct",
         rootsStatus: current.rootsEverUnlocked ? current.rootsStatus : "unanswered",
         rootsEverUnlocked: true,
       }));
     } else {
-      setExercise((current) => ({ ...current, transformedEquationStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, transformedEquationStatus: "incorrect" }));
     }
   };
 
@@ -420,6 +412,7 @@ export function EulerTransformationPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       transformedEquationStatus: "revealed",
       rootsStatus: current.rootsEverUnlocked ? current.rootsStatus : "unanswered",
       rootsEverUnlocked: true,
@@ -436,12 +429,14 @@ export function EulerTransformationPractice() {
     if (result.isCorrect) {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
         rootsStatus: "correct",
         uBasisStatus: current.uBasisEverUnlocked ? current.uBasisStatus : "unanswered",
         uBasisEverUnlocked: true,
       }));
     } else {
-      setExercise((current) => ({ ...current, rootsStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, rootsStatus: "incorrect" }));
     }
   };
 
@@ -461,6 +456,7 @@ export function EulerTransformationPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       rootsStatus: "revealed",
       uBasisStatus: current.uBasisEverUnlocked ? current.uBasisStatus : "unanswered",
       uBasisEverUnlocked: true,
@@ -477,7 +473,7 @@ export function EulerTransformationPractice() {
     if (tokens.length !== degree) {
       setUBasisParseErrors([`יש להזין ${degree} איברי בסיס.`]);
       setUBasisResult(null);
-      setExercise((current) => ({ ...current, uBasisStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, uBasisStatus: "incorrect" }));
       return;
     }
 
@@ -488,12 +484,14 @@ export function EulerTransformationPractice() {
     if (result.isCorrect) {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
         uBasisStatus: "correct",
         yBasisStatus: current.yBasisEverUnlocked ? current.yBasisStatus : "unanswered",
         yBasisEverUnlocked: true,
       }));
     } else {
-      setExercise((current) => ({ ...current, uBasisStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, uBasisStatus: "incorrect" }));
     }
   };
 
@@ -508,6 +506,7 @@ export function EulerTransformationPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       uBasisStatus: "revealed",
       yBasisStatus: current.yBasisEverUnlocked ? current.yBasisStatus : "unanswered",
       yBasisEverUnlocked: true,
@@ -524,7 +523,7 @@ export function EulerTransformationPractice() {
     if (tokens.length !== degree) {
       setYBasisParseErrors([`יש להזין ${degree} איברי בסיס.`]);
       setYBasisResult(null);
-      setExercise((current) => ({ ...current, yBasisStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, yBasisStatus: "incorrect" }));
       return;
     }
 
@@ -533,14 +532,19 @@ export function EulerTransformationPractice() {
     setYBasisResult(result);
 
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, yBasisStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        yBasisStatus: "correct",
+      }));
       if (activeIncludeStability) {
         unlockStabilityStage();
       } else {
         applyCompletion(exercise.usedReveal);
       }
     } else {
-      setExercise((current) => ({ ...current, yBasisStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, yBasisStatus: "incorrect" }));
     }
   };
 
@@ -555,6 +559,7 @@ export function EulerTransformationPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       yBasisStatus: "revealed",
       usedReveal: true,
     }));
@@ -572,10 +577,15 @@ export function EulerTransformationPractice() {
     const result = evaluateStabilityAnswer(stabilityAnswer, question.roots);
     setStabilityResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, stabilityStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        stabilityStatus: "correct",
+      }));
       applyCompletion(exercise.usedReveal);
     } else {
-      setExercise((current) => ({ ...current, stabilityStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, stabilityStatus: "incorrect" }));
     }
   };
 
@@ -586,6 +596,7 @@ export function EulerTransformationPractice() {
     setStabilityResult(evaluateStabilityAnswer(answer, question.roots));
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       stabilityStatus: "revealed",
       usedReveal: true,
     }));
@@ -743,7 +754,7 @@ export function EulerTransformationPractice() {
         ) : null}
 
         <div className="full-practice-steps">
-          <StepCard stepNumber={1} title="הפולינום האופייני" status={exercise.polynomialStatus} locked={false}>
+          <StepCard stepNumber={1} title="הפולינום האופייני המנורמל" status={exercise.polynomialStatus} locked={false}>
             <p className="activity-hint">
               הזינו את <MathText math="p(r)" /> בבסיס החזקות הרגיל, כאשר{" "}
               <MathText math="x^ky^{(k)}\longleftrightarrow r^{\underline{k}}" />.
@@ -924,7 +935,8 @@ export function EulerTransformationPractice() {
             locked={uBasisLocked}
           >
             <p className="activity-hint">
-              הזינו בסיס ממשי סטנדרטי עבור <MathText math="u(t)" />.
+              הזינו בסיס ממשי סטנדרטי עבור <MathText math="u(t)" />. אין להזין קומבינציות ליניאריות
+              שרירותיות.
             </p>
             <ConstantBasisComposer
               entries={uBasisEntries}
@@ -1005,6 +1017,10 @@ export function EulerTransformationPractice() {
               </section>
             ) : null}
 
+            <p className="activity-hint">
+              הזינו בסיס ממשי סטנדרטי עבור <MathText math="y(x)" />. אין להזין קומבינציות ליניאריות
+              שרירותיות.
+            </p>
             <ConstantBasisComposer
               entries={yBasisEntries}
               displayContext="euler-x"

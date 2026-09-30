@@ -22,10 +22,13 @@ export function ChapterPanel({
   course,
   chapter: chapterNumber,
   art,
+  completed = {},
 }: {
   course: CourseDefinition;
   chapter: number;
   art?: ArtPiece;
+  /** Finished activities per module id, for the signed-in student. */
+  completed?: Readonly<Record<string, number>>;
 }) {
   const chapter = findChapter(course, chapterNumber);
   if (!chapter) {
@@ -77,6 +80,9 @@ export function ChapterPanel({
                     {courseModule.sections.length === 1 ? "סעיף" : "סעיפים"}{" "}
                     <bdi dir="ltr">{sectionRangeLabel(courseModule.sections)}</bdi> ברשימות
                   </small>
+                  {courseModule.activities?.length ? (
+                    <ModuleProgress done={completed[courseModule.id] ?? 0} total={courseModule.activities.length} />
+                  ) : null}
                 </Link>
               ))}
             </div>
@@ -108,5 +114,14 @@ export function ChapterPanel({
         </nav>
       </section>
     </NotesDialogHost>
+  );
+}
+
+function ModuleProgress({ done, total }: { done: number; total: number }) {
+  const finished = Math.min(done, total);
+  return (
+    <small className={`course-module-progress${finished === total ? " complete" : ""}`} data-module-progress>
+      {finished === total ? "כל הפעילויות הושלמו" : `הושלמו ${finished} מתוך ${total} פעילויות`}
+    </small>
   );
 }

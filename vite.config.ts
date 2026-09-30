@@ -32,6 +32,13 @@ const localBindingConfig = {
 };
 
 export default defineConfig({
+  server: {
+    fs: {
+      // Vite also serves workspace files during development. These are not
+      // public assets, including through /@fs/ or ?raw requests.
+      deny: [".env", ".env.*", ".dev.vars*", "*.{crt,pem}", "**/.git/**", "**/.data/**", "**/.wrangler/**", "**/private/**"],
+    },
+  },
   plugins: [
     vinext(),
     sites(),

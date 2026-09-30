@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { resolve, join } from "node:path";
 import { parseToc, syncOptions } from "../../scripts/sync-course-notes";
 
 describe("course notes sync options", () => {
@@ -7,11 +8,13 @@ describe("course notes sync options", () => {
     expect(syncOptions(["--course", "ode"])).toEqual(syncOptions([]));
     const legacy = syncOptions(["/tmp/ode-source"]);
     expect(legacy.course).toBe("ode");
-    expect(legacy.notesRoot).toBe("/tmp/ode-source");
+    expect(legacy.notesRoot).toBe(resolve("/tmp/ode-source"));
     expect(legacy.copies.map(({ source }) => source)).toEqual(["main.pdf", "ExtendedSyllabus_winter2026.pdf", "FormulaSheet.pdf"]);
-    expect(syncOptions(["--course", "ode", "/tmp/ode-source"])).toMatchObject({ course: "ode", notesRoot: "/tmp/ode-source" });
+    expect(syncOptions(["--course", "ode", "/tmp/ode-source"])).toMatchObject({ course: "ode", notesRoot: resolve("/tmp/ode-source") });
     const fourier = syncOptions(["--course", "fourier", "/tmp/fourier-source"]);
-    expect(fourier).toMatchObject({ course: "fourier", notesRoot: "/tmp/fourier-source", publicDir: expect.stringMatching(/public\/courses\/fourier$/), tocOutput: expect.stringMatching(/app\/fourier\/notesToc\.ts$/) });
+    expect(fourier).toMatchObject({ course: "fourier", notesRoot: resolve("/tmp/fourier-source") });
+    expect(fourier.privateDir.endsWith(join("private", "courses", "fourier"))).toBe(true);
+    expect(fourier.tocOutput.endsWith(join("app", "fourier", "notesToc.ts"))).toBe(true);
     expect(fourier.copies.map(({ source, target }) => [source, target])).toEqual([
       ["main.pdf", "notes.pdf"], ["ElaborateSyllabus.pdf", "syllabus.pdf"], ["formula_sheet.pdf", "formula-sheet.pdf"],
     ]);
@@ -20,7 +23,7 @@ describe("course notes sync options", () => {
       [String.raw`נוסחאות היפוך והתמרת פוריה ב-$\ensuremath {\mathcal {G}}^2\qty (\ensuremath {\mathbb {R}})$`]: "נוסחאות היפוך והתמרת פוריה עבור פונקציות רציפות למקוטעין וריבוע־אינטגרביליות",
       [String.raw`קונבולוציה ב-$\ensuremath {\mathcal {G}}\qty (\ensuremath {\mathbb {R}})$`]: "קונבולוציה של פונקציות רציפות למקוטעין ואינטגרביליות בהחלט",
     });
-    expect(fourier.publicDir).not.toBe(legacy.publicDir);
+    expect(fourier.privateDir).not.toBe(legacy.privateDir);
     expect(fourier.tocOutput).not.toBe(legacy.tocOutput);
   });
 

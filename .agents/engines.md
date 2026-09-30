@@ -120,6 +120,14 @@ Sampling, critical-point inclusion, clipping and oscillation envelopes are displ
 they never determine convergence. The finite viewport is separate from the mathematical
 domain. Neither the plots nor this catalogue accept arbitrary student formulas.
 
+### L. Token-based argument checker — `app/function-sequences-series/math/supremumArgument.ts`
+
+Curated supremum-test steps (`supremumExamples.ts`, `supremumTypes.ts`). Students fill guided
+slot templates, candidate tables, checklists and choices with **tokens** from a closed
+registry; `checkStep` compares token ids against curated answers (with optional `unordered`
+groups and "true but not required" items). No CAS and no free-formula input; `e` exists only
+inside LaTeX strings. Like engine K, it is not a general engine.
+
 ---
 
 ## 2. How students can enter answers

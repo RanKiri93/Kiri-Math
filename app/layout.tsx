@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { CourseEntry } from "./_site/CourseEntry";
+import { TextSizeControl } from "./_site/TextSizeControl";
+import { textSizeBootScript } from "./_site/textSize";
 import "@fontsource/assistant/400.css";
 import "@fontsource/assistant/600.css";
 import "@fontsource/assistant/700.css";
@@ -24,9 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl">
+    // The boot script may set the root font size before hydration, hence suppressHydrationWarning.
+    <html lang="he" dir="rtl" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: textSizeBootScript }} />
+      </head>
       <body>
-        {children}
+        <CourseEntry>{children}</CourseEntry>
+        <TextSizeControl />
       </body>
     </html>
   );

@@ -5,12 +5,12 @@ import { SequencePlot } from "./SequencePlot";
 import { POSITIVE_RAY, REAL_LINE, UNIT_INTERVAL } from "../math/convergenceActivity";
 import { plotX, plotY, PLOT_Y_MAX } from "../math/sequencePlot";
 import { ConvergenceLab } from "./ConvergenceLab";
-import { IndexControl } from "./ConvergenceUI";
+import { LimitPrediction, SliderPanel } from "./ConvergenceUI";
 
 describe("convergence plot rendering safeguards", () => {
   it("opens with boxed definitions and one activity entry action", () => {
     const html = renderToStaticMarkup(createElement(ConvergenceLab));
-    expect(html.match(/class="convergence-definition"/g)).toHaveLength(2);
+    expect(html.match(/class="convergence-definition formal"/g)).toHaveLength(2);
     expect(html).toContain("\\lim_{n\\to\\infty}f_n(x)=f(x)");
     expect(html.match(/<button\b/g)).toHaveLength(1);
     expect(html).toContain("להתחלת הפעילות");
@@ -18,9 +18,31 @@ describe("convergence plot rendering safeguards", () => {
   });
 
   it("pairs the bounded integer index slider with an exact numeric input", () => {
-    const html = renderToStaticMarkup(createElement(IndexControl, { n: 18, onChange: () => {} }));
+    const html = renderToStaticMarkup(createElement(SliderPanel, {
+      n: 18, onN: () => {}, epsilon: 0.25, onEpsilon: () => {}, epsilonEnabled: true,
+    }));
     expect(html).toMatch(/type="range"[^>]*dir="ltr"[^>]*min="1"[^>]*max="256"[^>]*step="1"[^>]*value="18"/);
     expect(html).toMatch(/type="number"[^>]*value="18"/);
+    expect(html).toMatch(/class="convergence-tool convergence-slider-panel" dir="ltr"/);
+    expect(html).not.toContain("katex-error");
+  });
+
+  it("keeps the epsilon block visible but disabled until the band is available", () => {
+    const props = { n: 1, onN: () => {}, epsilon: 0.25, onEpsilon: () => {}, point: { value: 0.5, min: 0, max: 1, onChange: () => {} } };
+    const locked = renderToStaticMarkup(createElement(SliderPanel, { ...props, epsilonEnabled: false }));
+    expect(locked).toMatch(/<fieldset class="convergence-slider-epsilon" disabled=""/);
+    expect(locked).toMatch(/type="range"[^>]*min="0"[^>]*max="1"[^>]*value="0.5"/);
+    const open = renderToStaticMarkup(createElement(SliderPanel, { ...props, epsilonEnabled: true }));
+    expect(open).not.toMatch(/<fieldset class="convergence-slider-epsilon" disabled/);
+  });
+
+  it("shows an empty limit slot until an option is chosen", () => {
+    const options = [{ value: "zero", label: "0" }, { value: "none", label: "none" }] as const;
+    const empty = renderToStaticMarkup(createElement(LimitPrediction<"zero" | "none">, { label: "p", lhs: "\\lim f_n(x_0)=", options, value: "", onChange: () => {} }));
+    expect(empty).toMatch(/class="convergence-limit-slot"[^>]*>\?</);
+    const filled = renderToStaticMarkup(createElement(LimitPrediction<"zero" | "none">, { label: "p", lhs: "\\lim f_n(x_0)=", options, value: "zero", onChange: () => {} }));
+    expect(filled).toMatch(/class="convergence-limit-slot is-filled"[^>]*>0</);
+    expect(filled).not.toContain("katex-error");
   });
   it("does not reveal the limit or its jump markers before the prediction", () => {
     const html = renderToStaticMarkup(createElement(SequencePlot, {
@@ -61,8 +83,6 @@ describe("convergence plot rendering safeguards", () => {
     expect(html).toContain('class="convergence-domain-boundary"');
     expect(html).toContain('class="convergence-probe"');
     expect(html).toContain('class="convergence-curve convergence-limit"');
-    // The limit and band remain visible while the selected-domain witness remains active.
-    expect(html).toContain("f(0.25)");
   });
 
   it("preserves the open right endpoint safeguard with power context", () => {
@@ -76,7 +96,8 @@ describe("convergence plot rendering safeguards", () => {
     expect(html).toContain('class="convergence-curve convergence-context-curve"');
     expect(html).not.toContain('class="convergence-endpoint-closed convergence-limit-point"');
     expect(html).toContain('class="convergence-endpoint-open"');
-    expect(html).toContain("הנקודה מחוץ לתחום");
+    // The probe sits on the excluded endpoint, so it is not drawn.
+    expect(html).not.toContain('class="convergence-probe"');
   });
 
   it("moves the domain boundary and clips the context curve at the frame", () => {
@@ -96,26 +117,19 @@ describe("convergence plot rendering safeguards", () => {
     }
   });
 
-  it("keeps the off-screen witness readout and names the correct sequence", () => {
-    const html = renderToStaticMarkup(createElement(SequencePlot, {
+  it("shows no numeric readout under the graph and skips a probe outside the domain", () => {
+    const offScreen = renderToStaticMarkup(createElement(SequencePlot, {
       id: "far", n: 16, domain: POSITIVE_RAY, view: { left: 0, right: 4 },
       epsilon: 0.25, showLimit: true, probeX: 16,
     }));
-    expect(html).toContain("הנקודה מחוץ לחלון התצוגה");
-    expect(html).toContain("g_{16}(16)\\approx 0.5");
-    expect(html).toContain("g(16)\\approx 0");
-    expect(html).toContain("|g_{16}-g|");
-    expect(html).not.toContain("a_n(x)");
-  });
-
-  it("prioritizes an excluded-domain warning over an off-screen warning", () => {
-    const html = renderToStaticMarkup(createElement(SequencePlot, {
+    expect(offScreen).not.toContain("convergence-readout");
+    expect(offScreen).not.toContain("g_{16}(16)");
+    const excluded = renderToStaticMarkup(createElement(SequencePlot, {
       id: "near", n: 16, domain: { ...POSITIVE_RAY, left: 0.5 }, view: { left: 1, right: 4 },
       epsilon: 0.25, showLimit: true, probeX: 0,
     }));
-    expect(html).toContain("הנקודה מחוץ לתחום");
-    expect(html).not.toContain("הנקודה מחוץ לחלון התצוגה");
-    expect(html).not.toContain("f_{16}(0)");
+    expect(excluded).not.toContain('class="convergence-probe"');
+    expect(excluded).not.toContain("convergence-readout");
   });
 
   it("uses the visible envelope class instead of an aliased high-frequency curve", () => {
@@ -128,14 +142,12 @@ describe("convergence plot rendering safeguards", () => {
     expect(html).toContain("מוצגת מעטפת התנודות");
   });
 
-  it("groups multi-digit indices and places the legend directly after the graph", () => {
+  it("places the legend directly after the graph for every index", () => {
     for (const n of [1, 18, 256]) {
       const html = renderToStaticMarkup(createElement(SequencePlot, {
         id: "shifted-oscillation", n, domain: { ...UNIT_INTERVAL, left: -0.5, right: 0.5 },
         view: { left: -0.5, right: 0.5 }, epsilon: 0.25, showLimit: true, probeX: 0.25,
       }));
-      expect(html).toContain(`f_{${n}}(0.25)`);
-      expect(html).toContain(`|f_{${n}}-f|`);
       expect(html).toContain('</svg><div class="convergence-legend"');
       expect(html).not.toContain("katex-error");
     }

@@ -21,6 +21,10 @@ export const odeCourse: CourseDefinition = {
       description: "התכנסות נקודתית ובמידה שווה; מעבדת התכנסות ופעילויות מתוכננות.",
       status: "construction",
       href: "/ode/1/function-sequences",
+      activities: [
+        { id: "convergence-lab", title: "התכנסות נקודתית ובמידה שווה" },
+        { id: "supremum-test", title: "שימוש במבחן הסופרמום" },
+      ],
     },
     {
       id: "function-series",

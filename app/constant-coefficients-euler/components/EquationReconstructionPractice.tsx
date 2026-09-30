@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   difficultyLabels,
   emptyQuizStats,
@@ -9,6 +9,7 @@ import {
   reconstructionCaseFilterLabels,
 } from "../constants";
 import { formatPolynomialLatex, formatFactoredPolynomialLatex } from "../math/polynomial";
+import { behaviorInfinityLatex } from "../math/reconstructionBehavior";
 import { rootGroupsDegree } from "../math/reconstruction";
 import {
   evaluateComplexPairDomainAnswer,
@@ -38,10 +39,9 @@ import {
 } from "../practice/rootEvaluation";
 import {
   createInitialReconstructionExerciseState,
-  recordAbandonedQuestion,
   recordAssistedCompletion,
   recordIndependentCompletion,
-  recordQuestionStarted,
+  recordQuestionAbandon,
 } from "../practice/stats";
 import type {
   BetaConstraint,
@@ -112,11 +112,13 @@ function uniqueConclusionUsesPolynomialOnly(equationKind: EquationKind, order: n
   return equationKind === "constant-coefficients" && order === 3;
 }
 
-function order3CaseFilterOptions(): ReconstructionCaseFilter[] {
-  return ["mixed", "unique", "one-real-parameter", "two-parameter", "impossible"];
-}
-
-function defaultCaseFilterOptions(): ReconstructionCaseFilter[] {
+function reconstructionCaseFilterOptions(
+  order: number,
+  difficulty: Difficulty,
+): ReconstructionCaseFilter[] {
+  if (order === 3 && difficulty !== "easy") {
+    return ["mixed", "unique", "one-real-parameter", "two-parameter", "impossible"];
+  }
   return ["mixed", "unique", "one-real-parameter", "impossible"];
 }
 
@@ -209,8 +211,6 @@ export function EquationReconstructionPractice() {
     null,
   );
 
-  const initialStartedRef = useRef(false);
-
   const question = useMemo(
     () => buildReconstructionQuestion({ seed, equationKind, order, difficulty, caseFilter }),
     [seed, equationKind, order, difficulty, caseFilter],
@@ -221,13 +221,6 @@ export function EquationReconstructionPractice() {
   const enteredForcedDegree = totalDraftDegree(rootRows);
   const expectedDetermination =
     question.analysis.kind === "impossible" ? null : question.analysis.kind;
-
-  useEffect(() => {
-    if (!initialStartedRef.current) {
-      initialStartedRef.current = true;
-      setStats((current) => recordQuestionStarted(current));
-    }
-  }, []);
 
   const infeasibilityReasonLocked = !exercise.infeasibilityReasonEverUnlocked;
   const forcedRootsLocked = !exercise.forcedRootsEverUnlocked;
@@ -497,18 +490,18 @@ export function EquationReconstructionPractice() {
     nextCaseFilter?: ReconstructionCaseFilter;
     abandonIncomplete?: boolean;
   }) => {
-    if (abandonIncomplete && !exercise.completed) {
-      setStats((current) => recordAbandonedQuestion(current));
-    }
-    const resolvedCaseFilter =
-      nextOrder !== 3 && nextCaseFilter === "two-parameter" ? "mixed" : nextCaseFilter;
+    setStats((current) => recordQuestionAbandon(current, exercise, abandonIncomplete));
+    const resolvedCaseFilter = reconstructionCaseFilterOptions(nextOrder, nextDifficulty).includes(
+      nextCaseFilter,
+    )
+      ? nextCaseFilter
+      : "mixed";
     setOrder(nextOrder);
     setDifficulty(nextDifficulty);
     setEquationKind(nextEquationKind);
     setCaseFilter(resolvedCaseFilter);
     setSeed((current) => current + seedStep);
     clearAnswerOnly(nextOrder);
-    setStats((current) => recordQuestionStarted(current));
   };
 
   const checkFeasibility = () => {
@@ -518,12 +511,17 @@ export function EquationReconstructionPractice() {
     const result = evaluateFeasibilityAnswer(feasibilityAnswer, expectedFeasibility);
     setFeasibilityResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, feasibilityStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        feasibilityStatus: "correct",
+      }));
       if (feasibilityAnswer === "feasible") {
         unlockForcedRootsStage();
       }
     } else {
-      setExercise((current) => ({ ...current, feasibilityStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, feasibilityStatus: "incorrect" }));
     }
   };
 
@@ -538,6 +536,7 @@ export function EquationReconstructionPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       feasibilityStatus: "revealed",
       usedReveal: true,
       infeasibilityReasonEverUnlocked: expectedFeasibility === "infeasible",
@@ -554,6 +553,7 @@ export function EquationReconstructionPractice() {
     }
     const feasibilityCheck = evaluateFeasibilityAnswer(feasibilityAnswer, expectedFeasibility);
     if (!feasibilityCheck.isCorrect) {
+      setExercise((current) => ({ ...current, hasEngaged: true }));
       setInfeasibilityReasonResult({
         isCorrect: false,
         message: "יש לזהות תחילה שהנתונים אינם יכולים להתקיים יחד.",
@@ -563,10 +563,20 @@ export function EquationReconstructionPractice() {
     const result = evaluateImpossibleReasonAnswer(impossibleReason, question.analysis.reason);
     setInfeasibilityReasonResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, feasibilityStatus: "correct", infeasibilityReasonStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        feasibilityStatus: "correct",
+        infeasibilityReasonStatus: "correct",
+      }));
       applyInfeasibleCompletion(exercise.usedReveal);
     } else {
-      setExercise((current) => ({ ...current, infeasibilityReasonStatus: "incorrect" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        infeasibilityReasonStatus: "incorrect",
+      }));
     }
   };
 
@@ -581,6 +591,7 @@ export function EquationReconstructionPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       infeasibilityReasonStatus: "revealed",
       feasibilityStatus: "revealed",
       usedReveal: true,
@@ -595,10 +606,15 @@ export function EquationReconstructionPractice() {
     const result = compareRootGroups(rootRows, question.expectedForcedRoots, expectedForcedDegree);
     setRootResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, forcedRootsStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        forcedRootsStatus: "correct",
+      }));
       unlockDeterminationStage();
     } else {
-      setExercise((current) => ({ ...current, forcedRootsStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, forcedRootsStatus: "incorrect" }));
     }
   };
 
@@ -618,6 +634,7 @@ export function EquationReconstructionPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       forcedRootsStatus: "revealed",
       usedReveal: true,
     }));
@@ -631,10 +648,15 @@ export function EquationReconstructionPractice() {
     const result = evaluateOutcomeAnswer(determination, expectedDetermination);
     setDeterminationResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, outcomeStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        outcomeStatus: "correct",
+      }));
       unlockConclusionStage();
     } else {
-      setExercise((current) => ({ ...current, outcomeStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, outcomeStatus: "incorrect" }));
     }
   };
 
@@ -654,6 +676,7 @@ export function EquationReconstructionPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       outcomeStatus: "revealed",
       usedReveal: true,
     }));
@@ -675,6 +698,11 @@ export function EquationReconstructionPractice() {
     setRealBranchResult(result);
     const nextRealStatus: StageStatus = result.isCorrect ? "correct" : "incorrect";
     setRealBranchStatus(nextRealStatus);
+    setExercise((current) => ({
+      ...current,
+      hasEngaged: true,
+      hadCorrectStage: result.isCorrect ? true : current.hadCorrectStage,
+    }));
     tryCompleteTwoParameterExercise(nextRealStatus, complexBranchStatus, exercise.usedReveal);
   };
 
@@ -696,6 +724,11 @@ export function EquationReconstructionPractice() {
     setComplexBranchResult(result);
     const nextComplexStatus: StageStatus = result.isCorrect ? "correct" : "incorrect";
     setComplexBranchStatus(nextComplexStatus);
+    setExercise((current) => ({
+      ...current,
+      hasEngaged: true,
+      hadCorrectStage: result.isCorrect ? true : current.hadCorrectStage,
+    }));
     tryCompleteTwoParameterExercise(realBranchStatus, nextComplexStatus, exercise.usedReveal);
   };
 
@@ -709,7 +742,7 @@ export function EquationReconstructionPractice() {
       message: "real-pair-domain-correct",
     });
     setRealBranchStatus("revealed");
-    setExercise((current) => ({ ...current, usedReveal: true }));
+    setExercise((current) => ({ ...current, hasEngaged: true, usedReveal: true }));
     tryCompleteTwoParameterExercise("revealed", complexBranchStatus, true);
   };
 
@@ -724,7 +757,7 @@ export function EquationReconstructionPractice() {
       message: "complex-pair-domain-correct",
     });
     setComplexBranchStatus("revealed");
-    setExercise((current) => ({ ...current, usedReveal: true }));
+    setExercise((current) => ({ ...current, hasEngaged: true, usedReveal: true }));
     tryCompleteTwoParameterExercise(realBranchStatus, "revealed", true);
   };
 
@@ -754,14 +787,19 @@ export function EquationReconstructionPractice() {
             isCorrect: true,
             message: "הפולינום האופייני המנורמל נכון.",
           });
-          setExercise((current) => ({ ...current, conclusionStatus: "correct" }));
+          setExercise((current) => ({
+            ...current,
+            hasEngaged: true,
+            hadCorrectStage: true,
+            conclusionStatus: "correct",
+          }));
           applyCompletion(exercise.usedReveal);
         } else {
           setConclusionResult({
             isCorrect: false,
             message: "הפולינום האופייני המנורמל אינו נכון.",
           });
-          setExercise((current) => ({ ...current, conclusionStatus: "incorrect" }));
+          setExercise((current) => ({ ...current, hasEngaged: true, conclusionStatus: "incorrect" }));
         }
         return;
       }
@@ -773,10 +811,15 @@ export function EquationReconstructionPractice() {
       const pair = evaluateUniqueEquationPair(polyEval.isCorrect, eqEval.isCorrect);
       setConclusionResult(pair);
       if (pair.isCorrect) {
-        setExercise((current) => ({ ...current, conclusionStatus: "correct" }));
+        setExercise((current) => ({
+          ...current,
+          hasEngaged: true,
+          hadCorrectStage: true,
+          conclusionStatus: "correct",
+        }));
         applyCompletion(exercise.usedReveal);
       } else {
-        setExercise((current) => ({ ...current, conclusionStatus: "incorrect" }));
+        setExercise((current) => ({ ...current, hasEngaged: true, conclusionStatus: "incorrect" }));
       }
       return;
     }
@@ -797,10 +840,15 @@ export function EquationReconstructionPractice() {
       message: isZeroCollisionIncorrect ? "zero-collision-incorrect" : result.message,
     });
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, conclusionStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        conclusionStatus: "correct",
+      }));
       applyCompletion(exercise.usedReveal);
     } else {
-      setExercise((current) => ({ ...current, conclusionStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, conclusionStatus: "incorrect" }));
     }
   };
 
@@ -842,6 +890,7 @@ export function EquationReconstructionPractice() {
     }
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       conclusionStatus: "revealed",
       usedReveal: true,
     }));
@@ -867,6 +916,27 @@ export function EquationReconstructionPractice() {
             הפולינום האופייני המנורמל בצורה מכפלת:{" "}
             <MathText block math={`p(r)=${factoredLatex}`} />
           </p>
+          <details className="intro-expansion">
+            <summary>רמז</summary>
+            <p>
+              הצורה המכפלת של <MathText math={"p(r)"} /> שעל המסך היא הפירוק המנורמל המלא.
+              פתיחת המכפלה היא הפולינום; אין שורשים נוספים להמציא.
+            </p>
+            <p>
+              פתחו גורמים ליניאריים <MathText math={"(r-r_j)"} /> ו־<MathText
+                math={"(r-r_j)^{m}"}
+              />, וגורמים ריבועיים אי־פריקים <MathText math={"(r-\\alpha)^2+\\beta^2"} />,
+              לפי האלגברה הרגילה. המקדם המוביל כבר <MathText math="1" />.
+            </p>
+            <p>
+              המשוואה המנורמלת, כשהיא נדרשת, היא התמונה של אותו <MathText math={"p"} />{" "}
+              המנורמל תחת כללי המעבר מהפולינום האופייני למשוואה של הסוג שמוצג: במקדמים קבועים
+              מקדמי המשוואה הם מקדמי <MathText math={"p"} />, לפי{" "}
+              <MathText math={"r^k \\leftrightarrow y^{(k)}"} />; במשוואת אוילר הם באים
+              ממילון <MathText math={"x^ky^{(k)}"} />, ולא ממקדמי בסיס החזקות של{" "}
+              <MathText math={"p"} />.
+            </p>
+          </details>
           <p className="activity-hint">
             {polynomialOnlyUnique
               ? "הזינו את המקדמים של הפולינום האופייני המנורמל:"
@@ -998,7 +1068,8 @@ export function EquationReconstructionPractice() {
   const conclusionStepTitle = isTwoParameterQuestion
     ? "שתי צורות ההשלמה האפשריות"
     : "שחזור המשוואה";
-  const caseFilterOptions = order === 3 ? order3CaseFilterOptions() : defaultCaseFilterOptions();
+  const caseFilterOptions = reconstructionCaseFilterOptions(order, difficulty);
+  const behaviorInfinity = behaviorInfinityLatex(question.behaviorCondition);
 
   return (
     <section className="practice-grid equation-practice-grid full-practice-grid" aria-label="תרגול שחזור משוואה">
@@ -1126,7 +1197,9 @@ export function EquationReconstructionPractice() {
         <div className="full-practice-steps">
           <StepCard stepNumber={1} title="היתכנות" status={exercise.feasibilityStatus} locked={false}>
             <p className="activity-hint">
-              האם קיימת משוואה ממשית ליניארית הומוגנית במקדמים קבועים מסדר {order} המקיימת את כל הנתונים?
+              {question.equationKind === "euler"
+                ? `האם קיימת משוואת אוילר ממשית ליניארית הומוגנית מסדר ${order} המקיימת את כל הנתונים?`
+                : `האם קיימת משוואה ממשית ליניארית הומוגנית במקדמים קבועים מסדר ${order} המקיימת את כל הנתונים?`}
             </p>
             <ReconstructionFeasibilityInput
               value={feasibilityAnswer}
@@ -1136,11 +1209,17 @@ export function EquationReconstructionPractice() {
             <details className="intro-expansion">
               <summary>רמז</summary>
               <p>
-                בדקו תחילה האם הפתרונות הנתונים ותנאי ההתנהגות כאשר{" "}
-                <span className="stability-inline-math">
-                  <MathText math={"x\\to\\infty"} />
-                </span>{" "}
-                יכולים בכלל להתקיים יחד.
+                {behaviorInfinity ? (
+                  <>
+                    בדקו תחילה האם הפתרונות הנתונים ותנאי ההתנהגות כאשר{" "}
+                    <span className="stability-inline-math">
+                      <MathText math={behaviorInfinity} />
+                    </span>{" "}
+                    יכולים בכלל להתקיים יחד.
+                  </>
+                ) : (
+                  <>בדקו תחילה האם הפתרונות הנתונים יכולים בכלל להתקיים יחד.</>
+                )}
               </p>
               <p>השוו את הפתרונות עצמם עם תנאי ההתנהגות, ובדקו האם הריבויים המוכרחים כבר חורגים מהמעלה.</p>
             </details>
@@ -1173,6 +1252,27 @@ export function EquationReconstructionPractice() {
                   invalidateFromInfeasibilityReasonEdit();
                 }}
               />
+              <details className="intro-expansion">
+                <summary>רמז</summary>
+                <p>
+                  מאחר שכבר נקבע שאין משוואה מתאימה, הסיבה היא בדיוק אחד משני סוגים: השורשים
+                  המוכרחים חורגים מהסדר הנקוב, או שפתרון נתון סותר את תנאי ההתנהגות באינסוף
+                  הנתון.
+                </p>
+                <p>
+                  סכמו את ריבויי השורשים המוכרחים — זוג צמוד תורם <MathText math="2" /> —
+                  והשוו לסדר <MathText math="n" />. אם הסכום כבר גדול מ־<MathText math="n" />,
+                  מתקבל <MathText math={"p(r)"} /> ממעלה גדולה מ־<MathText math="n" />, וזו
+                  הסיבה. אל תחפשו אז סתירה לתנאי ההתנהגות.
+                </p>
+                <p>
+                  רק אם השורשים המוכרחים נכנסים בסדר, השוו כל פתרון נתון כפונקציה של{" "}
+                  <MathText math="x" /> — למשל <MathText math={"e^{rx}"} /> או{" "}
+                  <MathText math={"x^k e^{rx}"} /> — עם התנאי שמודפס בפועל: האם הפתרונות
+                  חסומים או שואפים לאפס, ובאיזה אינסוף, <MathText math={"x\\to+\\infty"} /> או{" "}
+                  <MathText math={"x\\to-\\infty"} />.
+                </p>
+              </details>
               {infeasibilityReasonResult && !infeasibilityReasonResult.isCorrect ? (
                 <p className="stage-feedback">{infeasibilityReasonResult.message}</p>
               ) : null}

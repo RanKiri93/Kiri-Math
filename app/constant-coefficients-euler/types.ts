@@ -155,6 +155,8 @@ export type FullSolutionExerciseState = {
   initialConditionsEverUnlocked: boolean;
   stabilityEverUnlocked: boolean;
   usedReveal: boolean;
+  hasEngaged: boolean;
+  hadCorrectStage: boolean;
   completed: boolean;
   completionKind: "none" | "independent" | "assisted";
 };
@@ -190,6 +192,8 @@ export type EulerTransformationExerciseState = {
   yBasisEverUnlocked: boolean;
   stabilityEverUnlocked: boolean;
   usedReveal: boolean;
+  hasEngaged: boolean;
+  hadCorrectStage: boolean;
   completed: boolean;
   completionKind: "none" | "independent" | "assisted";
 };
@@ -339,6 +343,8 @@ export type ReconstructionExerciseState = {
   outcomeEverUnlocked: boolean;
   conclusionEverUnlocked: boolean;
   usedReveal: boolean;
+  hasEngaged: boolean;
+  hadCorrectStage: boolean;
   completed: boolean;
   completionKind: "none" | "independent" | "assisted";
 };

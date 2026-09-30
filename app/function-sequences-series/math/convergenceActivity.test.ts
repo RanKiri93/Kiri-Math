@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  checkEscape, isPersistentWitness, repairedDomain, trackingPoint,
+  checkEscape, isPersistentWitness, REPAIR_CHOICES, repairedDomain, trackingPoint,
   type PairId, type RepairDomain, type TrackingRule,
 } from './convergenceActivity';
-import { classifyConvergence, sequenceValue } from './convergence';
+import { classifyConvergence, inInterval, intervalLatex, sequenceValue, supremumError } from './convergence';
 
 const ALL_N = Array.from({ length: 256 }, (_, i) => i + 1);
 const ids: PairId[] = ['near', 'far'];
@@ -57,5 +57,34 @@ describe('paired convergence activity mathematical checks', () => {
     }
     expect(() => repairedDomain('away', 0, 4)).toThrow(RangeError);
     expect(() => repairedDomain('bounded', 0.5, Infinity)).toThrow(RangeError);
+  });
+
+  it('offers concrete domain choices whose classification matches an escaping witness or a vanishing supremum', () => {
+    expect(REPAIR_CHOICES.near.map(intervalLatex)).toEqual(['[0,1]', String.raw`(0,\infty)`, String.raw`[1,\infty)`, '(0,1)', String.raw`[0,\infty)`, '(0,10]']);
+    expect(REPAIR_CHOICES.far.map(intervalLatex)).toEqual(['[0,1]', String.raw`(0,\infty)`, String.raw`[1,\infty)`, String.raw`(1,\infty)`, String.raw`[0,\infty)`, String.raw`[10,\infty)`]);
+    const expected: Record<PairId, ReturnType<typeof classifyConvergence>[]> = {
+      near: ['pointwise', 'pointwise', 'uniform', 'pointwise', 'pointwise', 'pointwise'],
+      far: ['uniform', 'pointwise', 'pointwise', 'pointwise', 'pointwise', 'pointwise'],
+    };
+    // Exactly one correct answer per sequence, at the index the reveal button selects.
+    const revealed: Record<PairId, number> = { near: 2, far: 0 };
+    for (const id of ids) {
+      const correct = REPAIR_CHOICES[id].flatMap((domain, index) => classifyConvergence(id, domain) === 'uniform' ? [index] : []);
+      expect(correct, `${id} correct answers`).toEqual([revealed[id]]);
+    }
+    for (const id of ids) REPAIR_CHOICES[id].forEach((domain, index) => {
+      const kind = classifyConvergence(id, domain);
+      expect(kind, `${id} on ${intervalLatex(domain)}`).toBe(expected[id][index]);
+      if (kind === 'uniform') {
+        expect(supremumError(id, 256, domain)!, `${id} sup on ${intervalLatex(domain)}`).toBeLessThan(0.01);
+      } else {
+        // Non-uniform: the moving witness stays in the domain with height 1/2 for every large n.
+        for (const n of ALL_N.slice(9)) {
+          const x = id === 'near' ? 1 / n : n;
+          expect(inInterval(x, domain), `${id} witness at n=${n}`).toBe(true);
+          expect(sequenceValue(id, n, x)).toBeCloseTo(0.5, 12);
+        }
+      }
+    });
   });
 });

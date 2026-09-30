@@ -33,6 +33,8 @@
 }
 
 html {
+  /* Slightly larger base text; a percentage keeps the student's browser font setting in effect. */
+  font-size: 106.25%;
   background: var(--paper);
 }
 
@@ -216,7 +218,10 @@ nav {
 
 .control-panel,
 .analysis-panel,
-.canvas-panel {
+.canvas-panel,
+.convergence-task-strip,
+.convergence-toolbar,
+.convergence-canvas {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -573,24 +578,533 @@ input[type="range"] {
   min-width: 0;
 }
 
-.convergence-lab .function-series-lab-grid {
-  grid-template-areas: "controls plots task";
-  grid-template-columns: minmax(240px, 330px) minmax(0, 1fr) minmax(240px, 340px);
+/*
+ * Guided uniform-convergence lab. Unlike the other modules it stacks vertically:
+ * the task strip (question + answer inputs on the right, check/feedback/next on the
+ * left), then the viewing tools, then the graphs. Answer inputs never sit away from
+ * the button that checks them.
+ */
+.convergence-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
 }
 
-.convergence-lab .function-series-lab-grid > .control-panel {
-  grid-area: controls;
+.convergence-task-strip {
+  padding: 16px 18px;
+  min-width: 0;
 }
 
-.convergence-lab .function-series-lab-grid > .canvas-panel {
-  grid-area: plots;
+.convergence-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 28px;
+  padding: 12px 16px;
+  min-width: 0;
 }
 
-.convergence-lab .function-series-lab-grid > .analysis-panel {
-  grid-area: task;
+.convergence-tool {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 16px;
+  min-width: 0;
 }
 
-/* Guided uniform-convergence lab: preserve the shared control | plot | analysis layout. */
+.convergence-inline-controls {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.convergence-toolbar .convergence-number {
+  width: 104px;
+}
+
+.convergence-number-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Slider panel: a left-to-right "formula" of display controls, ε block faded until needed. */
+.convergence-slider-panel {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(180px, 0.42fr);
+  align-items: center;
+  gap: 10px 22px;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.convergence-slider-rows {
+  display: grid;
+  grid-template-columns: auto 104px minmax(140px, 1fr) auto;
+  align-items: center;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+.convergence-slider-label {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.convergence-slider-label .math-render {
+  font-size: var(--math-size-standard);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.convergence-slider-panel .convergence-number {
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  font-size: inherit;
+}
+
+.convergence-slider-panel input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--blue);
+  direction: ltr;
+  unicode-bidi: isolate;
+  cursor: pointer;
+}
+
+.convergence-slider-panel input:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 7px;
+}
+
+.convergence-slider-panel .panel-action {
+  width: auto;
+  min-width: 128px;
+  margin-top: 0;
+}
+
+.convergence-slider-divider {
+  align-self: stretch;
+  border-inline-start: 2px dashed var(--line);
+}
+
+.convergence-slider-epsilon {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  transition: opacity 180ms ease;
+}
+
+.convergence-slider-epsilon-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.convergence-slider-epsilon:disabled {
+  opacity: 0.4;
+}
+
+.convergence-slider-epsilon:disabled input {
+  cursor: not-allowed;
+}
+
+.convergence-slider-reset {
+  grid-column: 4;
+}
+
+.convergence-slider-extra {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  direction: rtl;
+}
+
+.convergence-slider-panel > .convergence-muted {
+  grid-column: 1 / -1;
+  direction: rtl;
+}
+
+/* Limit prediction: lim f_n(x_0) = [slot], options as centred chips. */
+.convergence-limit-prediction {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.convergence-limit-equation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.convergence-limit-equation > .math-render {
+  font-size: var(--math-size-standard);
+}
+
+.convergence-limit-slot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 96px;
+  min-height: 46px;
+  padding: 4px 14px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.convergence-limit-slot.is-filled {
+  border-style: solid;
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--ink);
+}
+
+.convergence-limit-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.convergence-limit-options .convergence-choice {
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+}
+
+/* Supremum test: guided slot templates (multi-slot sibling of the limit prediction). */
+.supremum-template {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.supremum-formula {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.supremum-formula > .math-render {
+  font-size: var(--math-size-standard);
+}
+
+.supremum-slot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 64px;
+  min-height: 46px;
+  padding: 4px 12px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.supremum-slot.is-filled {
+  border-style: solid;
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--ink);
+}
+
+.supremum-slot.is-active:not(.is-filled) {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.supremum-slot.is-wrong {
+  border-style: solid;
+  border-color: var(--rust);
+  box-shadow: 0 0 0 1px var(--rust);
+}
+
+.supremum-slot:disabled {
+  cursor: default;
+}
+
+.supremum-slot > .math-render {
+  font-size: var(--math-size-compact);
+}
+
+.supremum-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.supremum-chip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.supremum-chip.is-selected {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.supremum-chip > .math-render {
+  font-size: var(--math-size-compact);
+}
+
+.supremum-slot:focus-visible,
+.supremum-chip:focus-visible,
+.supremum-max:focus-within {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.convergence-choice.is-wrong,
+.convergence-choice.is-selected.is-wrong {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 1px var(--rust);
+}
+
+/* Candidate table: a slot template per row plus the shared "this is the maximum" radio. */
+.supremum-table {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.supremum-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1.6fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.supremum-row > .supremum-template {
+  justify-items: center;
+}
+
+.supremum-row-caption {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.supremum-row.is-max {
+  border-color: var(--blue);
+}
+
+.supremum-row.is-wrong {
+  border-color: var(--rust);
+}
+
+.supremum-max {
+  align-items: center;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.supremum-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The sequence under study: centred, framed, and briefly emphasised when it appears. */
+.convergence-formula-card {
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 30px;
+  border: 1.5px solid var(--blue);
+  border-radius: 10px;
+  background: var(--blue-soft);
+  box-shadow: 0 0 0 3px rgba(35, 87, 137, 0.14);
+  animation: convergence-formula-in 520ms ease-out;
+}
+
+@keyframes convergence-formula-in {
+  0% { opacity: 0; transform: scale(0.94); }
+  60% { opacity: 1; transform: scale(1.03); }
+  100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .convergence-formula-card { animation: none; }
+  .convergence-slider-epsilon { transition: none; }
+}
+
+.convergence-canvas {
+  min-width: 0;
+  padding: 14px;
+}
+
+.convergence-workspace .convergence-plots {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  align-items: start;
+}
+
+.convergence-workspace .convergence-plot:only-child {
+  justify-self: center;
+  width: min(100%, 820px);
+}
+
+.convergence-workspace .convergence-plot-caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 22px;
+}
+
+.convergence-plot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 14px;
+  margin-bottom: 8px;
+}
+
+.convergence-plot-controls .convergence-control select {
+  width: auto;
+}
+
+.convergence-plot-controls .convergence-view-controls {
+  width: min(100%, 360px);
+}
+
+.convergence-plot-controls .panel-action {
+  width: auto;
+  margin-top: 0;
+}
+
+.convergence-plot-controls .convergence-muted {
+  align-self: center;
+}
+
+.convergence-task-prompt,
+.convergence-task-response {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.convergence-task-response {
+  padding-inline-start: 24px;
+  border-inline-start: 1px solid var(--line);
+}
+
+.convergence-task-prompt:only-child {
+  grid-column: 1 / -1;
+}
+
+.convergence-task-prompt > .panel-action,
+.convergence-task-response > .panel-action {
+  justify-self: start;
+  width: auto;
+  min-width: 160px;
+  margin-top: 0;
+}
+
+.convergence-task-prompt .convergence-choices:not(.is-compact) {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.convergence-task .convergence-probe-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.convergence-sequence-inputs {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.convergence-sequence-inputs h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.convergence-formula-pair {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 36px;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.convergence-formula-pair > .math-display {
+  flex: 0 1 auto;
+  width: auto;
+  margin: 0;
+}
+
 .convergence-lab {
   display: grid;
   gap: 16px;
@@ -618,17 +1132,6 @@ input[type="range"] {
   line-height: 1.5;
 }
 
-.convergence-lab .function-series-lab-grid {
-  width: 100%;
-  min-height: 0;
-  align-items: start;
-}
-
-.convergence-lab .control-panel,
-.convergence-lab .analysis-panel {
-  gap: 12px;
-}
-
 .convergence-heading p,
 .convergence-subtitle,
 .convergence-muted,
@@ -645,32 +1148,6 @@ input[type="range"] {
   color: var(--rust);
 }
 
-.convergence-lesson-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.convergence-lesson-nav button {
-  min-height: 36px;
-  padding: 6px 11px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--raised);
-  color: var(--ink);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.convergence-lesson-nav button[aria-current="step"] {
-  border-color: var(--blue);
-  background: var(--blue-soft);
-  color: var(--blue);
-}
-
-.convergence-lesson-nav button:focus-visible,
 .convergence-actions button:focus-visible,
 .convergence-hints button:focus-visible,
 .convergence-proof summary:focus-visible,
@@ -685,6 +1162,239 @@ input[type="range"] {
   display: grid;
   gap: 14px;
 }
+
+/* Sequenced convergence activity: keep its navigation and host inside the lab bounds. */
+.function-sequences-module .convergence-activity-host,
+.function-sequences-module .convergence-menu,
+.function-sequences-module .convergence-lab {
+  width: 100%;
+  max-width: 1540px;
+  margin-inline: auto;
+}
+
+.function-sequences-module .convergence-activity-host[hidden],
+.function-sequences-module .convergence-menu[hidden] {
+  display: none;
+}
+
+.convergence-heading {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.convergence-heading-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.convergence-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.convergence-heading-actions .panel-action {
+  width: auto;
+  margin: 0;
+  min-height: 40px;
+}
+
+.convergence-sequence-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.convergence-sequence-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.convergence-sequence-progress {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.convergence-sequence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.convergence-sequence-actions .panel-action {
+  min-height: 44px;
+  width: auto;
+  margin: 0;
+}
+
+.convergence-sequence-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-block: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.convergence-progress-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The supremum activity's five examples; the 640px rule below still stacks them in two columns. */
+.convergence-progress-list.supremum-progress-list {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1180px) {
+  .convergence-progress-list.supremum-progress-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.convergence-progress-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  height: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--ink);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+
+.convergence-progress-number {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.convergence-progress-label {
+  display: block;
+  min-width: 0;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.convergence-progress-status {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.convergence-progress-step[aria-current="step"] {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.convergence-progress-step[data-state="complete"] .convergence-progress-number {
+  border-color: var(--green);
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.convergence-progress-step[data-state="locked"] {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.convergence-progress-step:focus-visible,
+.convergence-sequence-actions .panel-action:focus-visible,
+.convergence-heading-actions .panel-action:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.convergence-stage {
+  display: grid;
+  gap: 16px;
+}
+
+.convergence-stage [hidden],
+.convergence-lesson-panel[hidden] {
+  display: none;
+}
+
+.convergence-lesson-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.convergence-part-header {
+  display: grid;
+  gap: 8px;
+  padding: 12px 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+}
+
+.convergence-part-title {
+  margin: 0;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--ink);
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.convergence-part-title:focus { outline: none; }
+.convergence-part-title:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+.convergence-explanation-slot {
+  min-height: 44px;
+  line-height: 1.6;
+}
+
+.convergence-explanation-slot p { margin: 0; }
+/* Avoid a lone word or symbol (such as a trailing n) wrapping onto its own last line. */
+.convergence-explanation-slot :is(p, li) { text-wrap: pretty; }
+.convergence-explanation-slot p + p,
+.convergence-explanation-slot ol + p { margin-top: 0.7em; }
+.convergence-explanation-slot ol {
+  display: grid;
+  gap: 4px;
+  margin: 0.4em 0 0;
+  padding-inline-start: 1.6em;
+  list-style: decimal;
+}
+
+.convergence-finish {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+}
+
+.convergence-finish h3 { margin: 0; color: var(--green); font-size: 1.15rem; }
 
 .convergence-definition {
   display: grid;
@@ -704,7 +1414,13 @@ input[type="range"] {
   margin: 0;
 }
 
-.convergence-definition .math-render,
+/* Only display math scrolls; an inline scroll container shows phantom scrollbars on subscripts. */
+.convergence-definition .math-render {
+  max-width: 100%;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 .convergence-definition .math-display {
   max-width: 100%;
   min-width: 0;
@@ -713,6 +1429,32 @@ input[type="range"] {
   overscroll-behavior-inline: contain;
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/* Formal definitions: a tinted box with an accent stripe on the reading-start side, and a real heading. */
+.convergence-definition.formal {
+  gap: 10px;
+  padding: 18px 20px;
+  border-color: var(--blue);
+  border-inline-start-width: 5px;
+  border-radius: 10px;
+  background: var(--blue-soft);
+}
+
+.convergence-definition.formal > h4 {
+  margin: 0;
+  color: var(--blue);
+  font-size: clamp(1.2rem, 1.6vw, 1.4rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.supremum-intro .convergence-definition ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 1.6em;
+  list-style: decimal;
 }
 
 .convergence-entry-action {
@@ -743,9 +1485,9 @@ input[type="range"] {
 .convergence-task {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: start;
-  gap: 12px;
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  align-items: start;
+  gap: 14px 24px;
 }
 
 .convergence-step-label {
@@ -868,33 +1610,6 @@ input[type="range"] {
 .convergence-control > label {
   display: grid;
   gap: 7px;
-}
-
-.convergence-index-slider {
-  display: grid;
-  gap: 7px;
-  min-width: 0;
-  width: 100%;
-}
-
-.convergence-index-slider input[type="range"] {
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  accent-color: var(--blue);
-  direction: ltr;
-  unicode-bidi: isolate;
-  cursor: pointer;
-}
-
-.convergence-index-slider input[type="range"]:focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: 2px;
-  border-radius: 7px;
 }
 
 .convergence-control-label {
@@ -1029,7 +1744,10 @@ input[type="range"] {
 }
 
 .convergence-plot .math-render,
-.convergence-task .math-render,
+.convergence-task .math-render {
+  max-width: 100%;
+}
+
 .convergence-task .math-display {
   max-width: 100%;
   overflow-x: auto;
@@ -1244,6 +1962,219 @@ line.convergence-band {
 .convergence-key[data-kind="probe"]::before {
   border-color: var(--rust);
   border-top-style: dashed;
+}
+
+/* Supremum test: function graph (G1), M_n graph (G2), window chips, example chips. */
+.supremum-plot {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.supremum-plot .convergence-plot-caption,
+.supremum-plot .convergence-legend,
+.supremum-plot .convergence-readout,
+.supremum-plot .supremum-view-controls {
+  direction: rtl;
+}
+
+.supremum-domain-shade {
+  fill: var(--blue-soft);
+  opacity: 0.55;
+}
+
+.supremum-sup-line {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  stroke-dasharray: 7 4;
+}
+
+.supremum-sup-label {
+  fill: var(--ink);
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.supremum-sup-label-index {
+  font-size: 11px;
+}
+
+.supremum-tangent {
+  fill: none;
+  stroke: var(--rust);
+  stroke-width: 2;
+}
+
+.supremum-max-marker {
+  fill: var(--gold);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.supremum-max-marker.is-faded {
+  fill: var(--paper);
+  stroke: var(--muted);
+  stroke-dasharray: 3 2;
+  opacity: 0.7;
+}
+
+.supremum-sign-cell {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.supremum-sign-cell.is-plus {
+  fill: var(--green-soft);
+  stroke: var(--green);
+}
+
+.supremum-sign-cell.is-minus {
+  fill: var(--rust);
+  fill-opacity: 0.22;
+  stroke: var(--rust);
+}
+
+.supremum-sign-cell.is-zero {
+  fill: none;
+}
+
+.supremum-sign-text {
+  fill: var(--ink);
+  stroke: none;
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.supremum-mn-dot {
+  fill: var(--rust);
+  stroke: var(--paper);
+  stroke-width: 1.5;
+}
+
+.supremum-mn-dot.is-inside {
+  fill: var(--green);
+}
+
+.supremum-mn-dot.is-current {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.convergence-key[data-kind="tangent"]::before {
+  border-color: var(--rust);
+}
+
+.convergence-key[data-kind="sign"]::before {
+  border-color: var(--green);
+}
+
+.convergence-key[data-kind="max"]::before {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.convergence-key[data-kind="sup"]::before {
+  border-color: var(--gold);
+  border-top-style: dashed;
+}
+
+.convergence-key[data-kind="mn-out"]::before,
+.convergence-key[data-kind="mn-in"]::before {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--rust);
+}
+
+.convergence-key[data-kind="mn-in"]::before {
+  background: var(--green);
+}
+
+.supremum-view-controls {
+  align-items: center;
+}
+
+.supremum-view-label {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.supremum-view-chips,
+.supremum-example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.supremum-view-chip,
+.supremum-example-chip {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.supremum-view-chip.is-selected,
+.supremum-example-chip.is-current {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.supremum-example-chip:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.6;
+}
+
+.supremum-view-chip:focus-visible,
+.supremum-example-chip:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.supremum-view-chip .math-render {
+  font-size: var(--math-size-compact);
+}
+
+.supremum-example-chips-label {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.supremum-prompt,
+.supremum-part-lead {
+  margin: 0;
+}
+
+.supremum-part {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .supremum-view-chips,
+  .supremum-example-chips {
+    gap: 4px;
+  }
+
+  .supremum-view-chip,
+  .supremum-example-chip {
+    padding-inline: 8px;
+  }
 }
 
 .fundamental-activity-main {
@@ -3758,6 +4689,62 @@ line.convergence-band {
   line-height: 1;
 }
 
+/* Reader text-size control: fixed at the bottom inline-end corner (bottom-left in RTL) on every page. */
+.text-size-control {
+  position: fixed;
+  inset-block-end: 16px;
+  inset-inline-end: 16px;
+  z-index: 40;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  box-shadow: 0 6px 20px rgba(37, 43, 51, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.text-size-button {
+  min-width: 40px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid rgba(37, 43, 51, 0.14);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.text-size-button.larger {
+  font-size: 19px;
+}
+
+.text-size-button:hover:not(:disabled) {
+  border-color: #2c456b;
+  background: rgba(220, 233, 245, 0.6);
+}
+
+.text-size-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(35, 87, 137, 0.14);
+  border-color: var(--blue);
+}
+
+.text-size-button:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.55;
+}
+
+@media print {
+  .text-size-control {
+    display: none;
+  }
+}
+
 .sample-table {
   display: grid;
   gap: 8px;
@@ -3927,8 +4914,16 @@ line.convergence-band {
 .dashboard-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   font-size: 1.4rem;
 }
+
+.account-bar { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 1rem; font-weight: 700; }
+.account-bar bdi { color: var(--ink); }
+.account-bar form { margin: 0; }
+.account-action { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 7px 14px; border: 1px solid var(--line); border-radius: 7px; background: var(--raised); color: var(--blue); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; }
+.account-action:hover { border-color: var(--blue); background: var(--blue-soft); }
 
 .dashboard-hero p {
   max-width: 640px;
@@ -4027,6 +5022,33 @@ line.convergence-band {
   margin-top: 8px;
   color: var(--blue);
   font-weight: 800;
+}
+
+.course-card-locked { cursor: pointer; }
+.course-card-guest .course-card-cta { color: var(--blue); }
+.course-card-locked .course-card-cta { color: var(--muted); }
+.course-card-locked .course-card-art { filter: saturate(0.72); }
+.course-card:focus-visible, .account-action:focus-visible, .auth-back:focus-visible, .auth-back-button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+.auth-page { display: grid; place-items: start center; padding-top: clamp(36px, 9vh, 100px); }
+.auth-panel { width: min(100%, 520px); display: grid; gap: 16px; align-content: start; padding: clamp(22px, 5vw, 38px); border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(14px); }
+.auth-panel h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; }
+.auth-panel > p { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.6; }
+.auth-back { justify-self: start; color: var(--blue); font-weight: 700; text-decoration: none; }
+.login-form { display: grid; gap: 14px; margin-top: 4px; }
+.login-form label { display: grid; gap: 6px; color: var(--ink); font-weight: 700; }
+.login-form input { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--raised); color: var(--ink); direction: ltr; unicode-bidi: isolate; text-align: left; outline: none; }
+.login-form input:focus-visible { border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 14%, transparent); }
+.login-form input:disabled { opacity: 0.7; }
+.login-form .panel-action { margin-top: 2px; min-height: 46px; }
+.login-error { margin: 0; padding: 10px 12px; border: 1px solid var(--rust); border-radius: 7px; background: color-mix(in srgb, var(--rust) 10%, transparent); color: var(--danger); line-height: 1.5; }
+.access-panel { margin-inline: auto; }
+.auth-back-button { width: fit-content; margin-top: 4px; padding: 9px 16px; }
+
+@media (max-width: 640px) {
+  .dashboard-header-auth { align-items: flex-start; }
+  .account-bar { flex-wrap: wrap; justify-content: flex-end; gap: 8px; font-size: 0.9rem; }
+  .auth-page { padding-inline: 14px; }
 }
 
 .course-shell {
@@ -4510,96 +5532,164 @@ nav.chapter-rail {
   font-size: calc(var(--math-size-standard) * 1.15);
 }
 
-/* Course-entry transition. The cover has about 125 strokes, so the stagger is
-   shorter than one step per stroke would need in order to finish near 1.5s. */
-.course-entry-overlay {
-  --art-step: 3ms;
-  position: fixed;
-  z-index: 60;
-  inset: 0;
-  background: inherit;
-  cursor: pointer;
+/* Course-entry handoff. JavaScript owns the timed opacity and geometry motion;
+   these rules provide the stable paper scene and final cover composition. */
+.course-entry-root {
+  display: contents;
 }
 
-html.course-transition-open {
+.course-entry-overlay {
+  position: fixed;
+  z-index: 60;
+  /* Stay centered when the arriving course adds a vertical scrollbar. */
+  inset: 0 auto 0 0;
+  width: 100vw;
+  display: grid;
+  place-items: center;
   overflow: hidden;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.course-entry-paper {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 3.5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(color-mix(in srgb, var(--ink) 3.5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--gold) 12%, transparent), transparent 28%),
+    var(--paper);
+}
+
+.course-entry-scene {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(16px, 3.2vh, 28px);
+  width: 100%;
+  max-height: 100%;
+  min-width: 0;
 }
 
 .course-entry-art {
-  position: absolute;
+  position: relative;
+  width: min(460px, 72vw, calc((100svh - 190px) * 1.6));
+  max-width: 100%;
+  aspect-ratio: 8 / 5;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.course-entry-art > .course-card-art {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 8 / 5;
+  background: var(--paper-deep);
+}
+
+.course-entry-art .course-card-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.course-entry-heading {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: min(100%, 760px);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(5px);
+  will-change: opacity, transform;
+}
+
+.course-entry-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  color: var(--blue);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
 }
 
 .course-entry-title {
-  position: absolute;
-  display: grid;
-  place-items: center;
   margin: 0;
   color: var(--ink);
-  font-size: clamp(2rem, 4vw, 4.25rem);
+  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
   font-weight: 800;
-  line-height: 0.96;
+  line-height: 1.12;
   text-align: center;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.course-entry-overlay .art-stroke:not(.dashed) {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.course-entry-overlay .art-stroke.dashed,
-.course-entry-overlay .art-dot {
-  opacity: 0;
-}
-
-.course-entry-overlay.is-drawing .art-stroke:not(.dashed) {
-  animation: art-draw 700ms ease forwards;
-  animation-delay: calc(var(--i) * var(--art-step));
-}
-
-.course-entry-overlay.is-drawing .art-stroke.dashed,
-.course-entry-overlay.is-drawing .art-dot {
-  animation: art-fade 700ms ease forwards;
-  animation-delay: calc(var(--i) * var(--art-step));
-}
-
-.course-entry-overlay.is-drawing .course-entry-title {
-  animation: art-fade 450ms ease 300ms forwards;
-}
-
-@keyframes art-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes art-fade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .course-entry-overlay .art-stroke:not(.dashed) {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-    animation: none;
+  .course-card {
+    transition-property: border-color, background;
   }
 
-  .course-entry-overlay .art-stroke.dashed,
-  .course-entry-overlay .art-dot,
+  .course-card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .course-entry-art {
+    width: min(440px, 76vw, calc((100svh - 170px) * 1.6));
+  }
+
   .course-entry-title {
-    opacity: 1;
-    animation: none;
+    font-size: clamp(1.7rem, 5.4vw, 2.35rem);
+  }
+}
+
+@media (max-width: 420px) {
+  .course-entry-overlay {
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(16px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+  }
+
+  .course-entry-art {
+    width: min(360px, 78vw, calc((100svh - 160px) * 1.6));
+  }
+
+  .course-entry-scene {
+    gap: 16px;
+  }
+
+  .course-entry-title {
+    font-size: clamp(1.55rem, 7vw, 2rem);
+  }
+}
+
+@media (max-height: 460px) {
+  .course-entry-overlay {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .course-entry-scene {
+    gap: 12px;
+  }
+
+  .course-entry-art {
+    width: min(360px, 58vw, calc((100svh - 126px) * 1.6));
+  }
+
+  .course-entry-heading {
+    gap: 4px;
+  }
+
+  .course-entry-title {
+    font-size: clamp(1.35rem, 4.4vh, 2rem);
+    line-height: 1.08;
   }
 }
 
@@ -4862,6 +5952,37 @@ html:has(.notes-dialog[open]) {
   padding-top: 14px;
 }
 
+/* Function-sequences menu: activity overview beside the notes sections (≈70/30). */
+.convergence-menu .module-intro-content {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+  gap: clamp(20px, 3vw, 36px);
+  align-items: start;
+}
+
+.convergence-menu .module-notes {
+  margin: 0;
+  border-top: 0;
+  border-inline-start: 1px solid var(--line);
+  padding-top: 0;
+  padding-inline-start: clamp(18px, 2.5vw, 30px);
+}
+
+@media (max-width: 820px) {
+  .convergence-menu .module-intro-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .convergence-menu .module-notes {
+    margin: 18px 0 6px;
+    border-top: 1px solid var(--line);
+    border-inline-start: 0;
+    padding-top: 14px;
+    padding-inline-start: 0;
+  }
+}
+
 .module-notes-heading {
   margin: 0 0 8px;
   color: var(--muted);
@@ -4923,6 +6044,18 @@ html:has(.notes-dialog[open]) {
   color: var(--muted);
   font-size: 0.85rem;
   font-weight: 700;
+}
+
+/* Activity progress on a chapter's module card: muted until every activity is finished. */
+.course-module-progress {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.course-module-progress.complete {
+  color: var(--green);
 }
 
 nav.chapter-pager {
@@ -4988,6 +6121,39 @@ nav.chapter-pager {
   max-width: 1540px;
   width: 100%;
   margin: 0 auto;
+}
+
+/* Function-sequences menu: cards in a row share a height, so pin each card's action to its bottom. */
+.convergence-menu .module-intro-grid > .module-intro-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.convergence-menu .module-intro-grid > .module-intro-card > .panel-action,
+.convergence-menu .module-intro-grid > .module-intro-card > .embedded-placeholder {
+  margin-top: auto;
+}
+
+/* A finished activity's mark on its menu card; the entry button below it starts a new run. */
+.convergence-menu .module-intro-grid > .module-intro-card > .activity-completion-mark {
+  align-self: flex-start;
+  margin: 0 0 12px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+/* Activity card titles ("1. …", "2. …", planned activities): same heading scale as the function-series roadmap. */
+.convergence-menu .module-intro-grid > .module-intro-card > h3 {
+  margin: 4px 0 10px;
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .module-intro-card {
@@ -5271,13 +6437,6 @@ nav.chapter-pager {
     grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
   }
 
-  .convergence-lab .function-series-lab-grid {
-    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
-    grid-template-areas:
-      "task task"
-      "controls plots";
-  }
-
   .metrics-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -5347,10 +6506,49 @@ nav.chapter-pager {
   }
 }
 
+@media (max-width: 560px) {
+  .supremum-formula {
+    gap: 6px;
+  }
+
+  .supremum-slot,
+  .supremum-chip {
+    min-width: 52px;
+    padding-inline: 8px;
+  }
+
+  .supremum-palette {
+    gap: 6px;
+  }
+
+  .supremum-row {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    padding: 8px;
+  }
+
+  .convergence-slider-rows {
+    grid-template-columns: auto 84px minmax(0, 1fr);
+  }
+
+  .convergence-slider-rows .panel-action,
+  .convergence-slider-reset {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+}
+
 @media (max-width: 820px) {
   .app-shell {
     padding: 14px;
   }
+
+  .convergence-heading {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .convergence-explanation-slot { min-height: 32px; }
 
   .topbar {
     align-items: stretch;
@@ -5371,12 +6569,28 @@ nav.chapter-pager {
     grid-template-columns: 1fr;
   }
 
-  .convergence-lab .function-series-lab-grid {
+  .convergence-task {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "task"
-      "controls"
-      "plots";
+  }
+
+  .convergence-task-response {
+    padding-inline-start: 0;
+    padding-top: 12px;
+    border-inline-start: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .convergence-task-strip {
+    padding: 14px;
+  }
+
+  .convergence-slider-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .convergence-slider-divider {
+    border-inline-start: 0;
+    border-top: 2px dashed var(--line);
   }
 
   .convergence-pair-controls,
@@ -5507,6 +6721,21 @@ nav.chapter-pager {
   .chapter-pager a {
     max-width: 100%;
   }
+}
+
+@media (max-width: 640px) {
+  .convergence-progress-list,
+  .convergence-progress-list.supremum-progress-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .convergence-sequence-nav { padding: 10px; }
+
+  .convergence-sequence-toolbar { align-items: stretch; }
+
+  .convergence-sequence-actions { width: 100%; }
+
+  .convergence-sequence-actions .panel-action { flex: 1 1 auto; }
+
+  .convergence-progress-step { min-height: 56px; padding: 7px; }
 }
 
 /* Function Sequences & Series module */

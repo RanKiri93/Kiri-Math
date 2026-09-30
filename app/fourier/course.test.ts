@@ -44,7 +44,9 @@ describe("Fourier course registration and assets", () => {
       "/courses/fourier/notes.pdf", "/courses/fourier/syllabus.pdf", "/courses/fourier/formula-sheet.pdf",
     ]);
     for (const resource of fourierCourse.resources) {
-      const path = join(root, "public", ...resource.href.split("/").filter(Boolean));
+      const relative = resource.href.replace(/^\/courses\//, "");
+      expect(existsSync(join(root, "public/courses", relative)), resource.href).toBe(false);
+      const path = join(root, "private/courses", relative);
       const bytes = readFileSync(path);
       expect(bytes.subarray(0, 5).toString(), resource.href).toBe("%PDF-");
     }
@@ -67,7 +69,7 @@ describe("Fourier course registration and assets", () => {
   });
 
   it("maps printed pages using the physical PDF page-label offset", () => {
-    const pdf = readFileSync(join(root, "public/courses/fourier/notes.pdf"));
+    const pdf = readFileSync(join(root, "private/courses/fourier/notes.pdf"));
     expect(fourierCourse.notes.pageOffset).toBe(2);
     expect(readPageOffset(pdf)).toBe(fourierCourse.notes.pageOffset);
     expect(notesPageHref(fourierCourse, 1)).toBe("/courses/fourier/notes.pdf#page=3");

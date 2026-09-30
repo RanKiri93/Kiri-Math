@@ -188,8 +188,7 @@ export function templateMatchesDifficulty(
   template: Order2ReconstructionTemplate,
   difficulty: Difficulty,
 ): boolean {
-  const rank: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
-  return rank[template.difficulty] <= rank[difficulty];
+  return template.difficulty === difficulty;
 }
 
 export function pickWeightedTemplate<T extends { weight: number }>(
@@ -347,22 +346,39 @@ export function order3TemplateMatchesDifficulty(
   template: Order3ReconstructionTemplate,
   difficulty: Difficulty,
 ): boolean {
-  const rank: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
-  return rank[template.difficulty] <= rank[difficulty];
+  return template.difficulty === difficulty;
 }
 
-export function pickMixedOutcomeCategoryOrder3(rng: RandomSource): ReconstructionOutcome {
-  const roll = rng.integer(0, 3);
-  if (roll === 0) {
-    return "unique";
+export const ORDER3_MIXED_OUTCOME_CATEGORIES: readonly ReconstructionOutcome[] = [
+  "unique",
+  "one-real-parameter",
+  "two-parameter",
+  "impossible",
+];
+
+export function order3OutcomesWithNonemptyPool(
+  difficulty: Difficulty,
+  templates: readonly Order3ReconstructionTemplate[],
+): ReconstructionOutcome[] {
+  return ORDER3_MIXED_OUTCOME_CATEGORIES.filter((outcome) =>
+    templates.some(
+      (template) =>
+        order3TemplateMatchesDifficulty(template, difficulty) &&
+        order3OutcomeToCaseFilterOutcome(template.outcome) === outcome,
+    ),
+  );
+}
+
+export function pickMixedOutcomeCategoryOrder3(
+  rng: RandomSource,
+  difficulty: Difficulty,
+  templates: readonly Order3ReconstructionTemplate[],
+): ReconstructionOutcome {
+  const available = order3OutcomesWithNonemptyPool(difficulty, templates);
+  if (available.length === 0) {
+    throw new Error(`No order-3 mixed outcomes have a non-empty pool at difficulty=${difficulty}`);
   }
-  if (roll === 1) {
-    return "one-real-parameter";
-  }
-  if (roll === 2) {
-    return "two-parameter";
-  }
-  return "impossible";
+  return rng.pick(available);
 }
 
 export const ORDER3_FALLBACK_TEMPLATE_ID = "O3-P01-easy";

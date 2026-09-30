@@ -5,7 +5,7 @@
  *   npx tsx scripts/sync-course-notes.ts --course fourier <notes-folder>
  *
  * notes-folder defaults to the course folder two levels above the repository. Run it after
- * every recompile of main.tex: it copies the PDFs into public/courses/<course>/ and regenerates
+ * every recompile of main.tex: it copies the PDFs into private/courses/<course>/ and regenerates
  * app/<course>/notesToc.ts from main.toc. The default course remains ODE; Fourier requires
  * an explicit source folder. Source files are never modified.
  */
@@ -45,7 +45,7 @@ export function syncOptions(args: string[]) {
   return {
     course,
     notesRoot: resolve(folder ?? join(repoRoot, "..", "..")),
-    publicDir: join(repoRoot, "public", "courses", course),
+    privateDir: join(repoRoot, "private", "courses", course),
     tocOutput: join(repoRoot, "app", course, "notesToc.ts"),
     titleAliases: course === "fourier" ? fourierTitleAliases : {},
     copies: [
@@ -205,7 +205,7 @@ function renderTocModule(chapters: Chapter[], pageOffset: number): string {
 }
 
 function main() {
-  const { notesRoot, publicDir, tocOutput, titleAliases, copies } = syncOptions(process.argv.slice(2));
+  const { notesRoot, privateDir, tocOutput, titleAliases, copies } = syncOptions(process.argv.slice(2));
   const tocPath = join(notesRoot, "main.toc");
   const pdfPath = join(notesRoot, "main.pdf");
   for (const path of [tocPath, pdfPath, ...copies.map((copy) => join(notesRoot, copy.source))]) {
@@ -217,9 +217,9 @@ function main() {
   const chapters = parseToc(readFileSync(tocPath, "utf8"), titleAliases);
   const pageOffset = readPageOffset(readFileSync(pdfPath));
 
-  mkdirSync(publicDir, { recursive: true });
+  mkdirSync(privateDir, { recursive: true });
   for (const copy of copies) {
-    copyFileSync(join(notesRoot, copy.source), join(publicDir, copy.target));
+    copyFileSync(join(notesRoot, copy.source), join(privateDir, copy.target));
   }
   writeFileSync(tocOutput, renderTocModule(chapters, pageOffset), "utf8");
 
@@ -227,7 +227,7 @@ function main() {
   console.log(`notes: ${notesRoot}`);
   console.log(`${chapters.length} chapters, ${sectionCount} sections, page offset ${pageOffset}`);
   console.log(`wrote ${tocOutput}`);
-  console.log(`copied ${copies.map((copy) => copy.target).join(", ")} → ${publicDir}`);
+  console.log(`copied ${copies.map((copy) => copy.target).join(", ")} → ${privateDir}`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

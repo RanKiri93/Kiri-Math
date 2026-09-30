@@ -88,6 +88,29 @@ Standard justifications: `לכל השורשים חלק ממשי שלילי` ·
 | Taylor series | טור טיילור |
 | Term-by-term differentiation / integration | גזירה / אינטגרציה איבר־איבר |
 
+### Supremum test and finding a maximum
+
+Used in the supremum-test activity (`math/supremumArgument.ts`).
+
+| Concept | Hebrew |
+| --- | --- |
+| Supremum test (uniform convergence iff `M_n -> 0`) | מבחן הסופרמום |
+| Uniform convergence | התכנסות במידה שווה (not uniform: אינה במידה שווה) |
+| Point where f' = 0, as a candidate for an extremum | נקודה חשודה לקיצון |
+| Endpoint of the domain | נקודת קצה (short form: קצה) |
+| Interior point | נקודה פנימית |
+| Candidate (for the maximum) | מועמד |
+| Fermat's theorem | משפט פרמה |
+| Weierstrass extreme value theorem | משפט ויירשטראס |
+| Maximum attained / supremum | מקסימום / סופרמום |
+| Monotone (increasing / decreasing) | מונוטונית (עולה / יורדת) |
+
+**Do not use "נקודה קריטית" for a point where f' = 0.** In this site `נקודה קריטית` is the
+phase-plane equilibrium point (see the Phase plane table). For f' = 0 write
+`נקודה חשודה לקיצון`. A test asserts that the supremum activity never says `נקודה קריטית`.
+
+Notes' convention: write `n>N`, not `n\ge N`, in the definition of convergence.
+
 ## Fourier analysis
 
 | Concept | Hebrew |

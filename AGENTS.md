@@ -32,10 +32,10 @@ into `package.json` and are run manually with `npx tsx scripts/<name>.ts`.
 After the lecture notes are recompiled, run `npx tsx scripts/sync-course-notes.ts`. It
 regenerates `app/ode/notesToc.ts` from `main.toc` (never edit that file by hand), reads
 the printed-page offset from the PDF, and copies the notes, syllabus and formula sheet
-into `public/courses/ode/`.
+into `private/courses/ode/` (not publicly served).
 For Fourier, run `npx tsx scripts/sync-course-notes.ts --course fourier "<notes-folder>"`.
 It reads `main.toc`, `main.pdf`, `ElaborateSyllabus.pdf`, and `formula_sheet.pdf`, generates
-`app/fourier/notesToc.ts`, and copies the PDFs into `public/courses/fourier/` without touching ODE.
+`app/fourier/notesToc.ts`, and copies the PDFs into `private/courses/fourier/` without touching ODE.
 
 Before declaring any code change complete, run `npm test` and `npm run typecheck`.
 
@@ -47,6 +47,7 @@ app/
   layout.tsx                      lang="he" dir="rtl", fonts, KaTeX CSS, site title
   globals.css                     THE ENTIRE DESIGN SYSTEM (~4,808 lines)
   courses.ts                      registry of courses shown on the dashboard
+  _auth/                          authentication, sessions, course entitlements, private PDF access
   _site/                          course-agnostic site shell: model, rail, panels, breadcrumbs
   ode/                            the 104136 course: course.ts, notesToc.ts, chapter
                                   and module routes (/ode, /ode/1..6, /ode/N/<module>)
@@ -56,16 +57,19 @@ app/
   constant-coefficients-euler/    layered module (reference implementation)
   linear-homogeneous/             layered module, symbolic algebra
   function-sequences-series/      layered module, mostly placeholders
-public/courses/<slug>/            course PDFs copied by the sync script
+private/courses/<slug>/           private source PDFs copied by the sync script; served only via authorized route
 scripts/                          notes sync + manual verification scripts
 worker/                           Cloudflare Workers handler
 ```
 
+Auth operations: `npm run auth:setup -- --target node|local|remote` selects the storage target; `npm run auth -- <create|grant|revoke|reset-password|disable|enable|list>`. Remote mode requires explicit real configuration and provisions/deploys no resources. Run `npx tsx scripts/verify-auth-http.ts` for the real HTTP smoke test. See `docs/authentication.md` for operational details.
+
 Courses, chapters and modules are **routes**. The old module URLs (`/phase-plane` and
-so on) are server redirects to their new place under `/ode/N/`. Phase 1 uses only plain
-folders, `page.tsx` and `redirect()`, because the dev server (vinext) is a
-reimplementation of the App Router and more advanced routing features have not been
-verified on it.
+so on) are server redirects to their new place under `/ode/N/`. Dynamic auth and
+protected-file routes are supported. Every course page checks access server-side; PDFs
+under `private/courses/` are served only by the authorized `/courses/[course]/[file]`
+handler. Vite denies direct filesystem serving of `private/`, `.data/` and `.wrangler/`,
+including in dev.
 
 ## Module conventions
 
@@ -92,8 +96,18 @@ Rules that hold across every module:
   they stay testable under vitest's `node` environment.
 - **Question generation is seeded and reproducible.** Use `SeededRandom` and `mixSeed`
   from `app/constant-coefficients-euler/practice/random.ts`. Do not add a second RNG.
-- **No persistence.** No Context, Redux, localStorage, cookies, or URL params. Practice
-  statistics live in `useState` and reset on refresh. This is a deliberate choice.
+- **No practice persistence.** Practice statistics live in `useState` and reset on refresh;
+  this is deliberate. Narrow exception: authentication uses a session cookie and server
+  database for accounts, throttles and course entitlements. Second narrow exception: the
+  reader text-size preference (`app/_site/textSize.ts`) is one localStorage key, a display
+  setting only. Third narrow exception: activity completion marks (`app/_progress/`,
+  table `activity_completions`) record only that a signed-in student finished a registered
+  activity, and when; never answers, attempts, or mid-activity state
+  (`docs/plans/activity-progress.md`). Do not extend persistence to practice state. No
+  Context or Redux, and no other localStorage.
+- **New activities need a defined completion point.** Register each one under its module's
+  `activities` in the course's `course.ts` and report completion when the student reaches
+  the end, so it can be marked finished.
 - **Tabs inside a module are component state**, not routes. Only courses, chapters and
   modules get URLs.
 - **Generators must validate their own output** before returning it (see the

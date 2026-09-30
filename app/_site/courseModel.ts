@@ -15,6 +15,12 @@ export type NotesChapter = {
 
 export type CourseModuleStatus = "active" | "construction";
 
+/** An activity with a defined end, whose completion is recorded per student. */
+export type CourseActivity = {
+  id: string;
+  title: string;
+};
+
 export type CourseModule = {
   id: string;
   chapter: number;
@@ -23,6 +29,8 @@ export type CourseModule = {
   description: string;
   status: CourseModuleStatus;
   href: string;
+  /** Trackable activities; modules without a defined end list none. */
+  activities?: readonly CourseActivity[];
 };
 
 export type CourseResource = {
@@ -86,6 +94,10 @@ export function modulesForChapter(course: CourseDefinition, chapter: number): Co
 
 export function modulesForSection(course: CourseDefinition, sectionNumber: string): CourseModule[] {
   return course.modules.filter((entry) => entry.sections.includes(sectionNumber));
+}
+
+export function findActivity(course: CourseDefinition, moduleId: string, activityId: string): CourseActivity | undefined {
+  return course.modules.find((entry) => entry.id === moduleId)?.activities?.find((entry) => entry.id === activityId);
 }
 
 export function sectionRangeLabel(sections: readonly string[]): string {

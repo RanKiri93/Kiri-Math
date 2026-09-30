@@ -11,7 +11,7 @@ implemented convergence activities, verification, and the next review steps.
 | --- | --- | --- |
 | `plans/` | `activity-planner` | Feasibility analyses and implementation plans |
 | `question-families/` | `question-designer` | Specifications for families of randomized exercises |
-| `reviews/` | `design-review` | Consistency audits and the work orders they produce |
+| `reviews/` | `design-review`, `pedagogy-review` | Visual or practice-design audits and the work orders they produce |
 
 Naming: kebab-case, one file per topic, and reviews prefixed with a date —
 `plans/uniform-convergence-lab.md`, `question-families/power-series-radius.md`,

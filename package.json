@@ -14,7 +14,9 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "auth:setup": "npx tsx scripts/setup-auth.ts",
+    "auth": "npx tsx scripts/auth-admin.ts"
   },
   "dependencies": {
     "@fontsource/assistant": "^5.2.9",

@@ -298,7 +298,9 @@ export function buildOrder3ConstantCoefficientQuestion(params: {
   const rng = new SeededRandom(mixSeed(attemptSeed, 0x104140));
 
   const targetOutcome =
-    params.caseFilter === "mixed" ? pickMixedOutcomeCategoryOrder3(rng) : params.caseFilter;
+    params.caseFilter === "mixed"
+      ? pickMixedOutcomeCategoryOrder3(rng, params.difficulty, ORDER3_RECONSTRUCTION_TEMPLATES)
+      : params.caseFilter;
 
   let pool = filterTemplates(params.caseFilter, params.difficulty, targetOutcome);
 

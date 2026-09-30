@@ -1,4 +1,4 @@
-import { betaConstraintOptions, realPairDomainOptions } from "../constants";
+import { EPS, betaConstraintOptions, realPairDomainOptions } from "../constants";
 import { formatAlphaConstraintLatex, formatBetaConstraintLatex, formatRealPairDomainLatex } from "../math/affinePolynomial";
 import { behaviorInfinityLatex } from "../math/reconstructionBehavior";
 import {
@@ -117,6 +117,10 @@ export function ReconstructionTwoParameterConclusion({
 
   const analysis = question.analysis;
   const mu = analysis.forcedRealRoot;
+  const isZeroCollisionBoundedness =
+    (question.behaviorCondition === "bounded-plus-infinity" ||
+      question.behaviorCondition === "bounded-minus-infinity") &&
+    Math.abs(mu) < EPS;
   const completedCount =
     Number(isBranchResolved(realBranchStatus)) + Number(isBranchResolved(complexBranchStatus));
 
@@ -130,6 +134,38 @@ export function ReconstructionTwoParameterConclusion({
       <p className="reconstruction-two-param-progress" dir="rtl">
         {completedCount} מתוך 2 הושלמו
       </p>
+      <details className="intro-expansion">
+        <summary>רמז</summary>
+        <p>
+          אחרי הגורם הליניארי המוכרח <MathText math={"(r-\\mu)"} /> נותר גורם ריבועי מנורמל
+          חופשי. זה הגורם שיש לסווג.
+        </p>
+        <p>
+          מקדמים ממשיים מחייבים פיצול לשני מקרים, והם בדיוק שתי הצורות: פיצול מעל{" "}
+          <MathText math={"\\mathbb{R}"} /> כ־<MathText
+            math={"p_{\\mathrm{real}}(r)=(r-\\mu)(r-\\lambda_1)(r-\\lambda_2)"}
+          />, כולל <MathText math={"\\lambda_1=\\lambda_2"} />; או אי־פריק מעל{" "}
+          <MathText math={"\\mathbb{R}"} /> כ־<MathText
+            math={"p_{\\mathrm{complex}}(r)=(r-\\mu)\\bigl((r-\\alpha)^2+\\beta^2\\bigr)"}
+          />. שני המקרים אפשריים; יש להשלים את שתי הצורות.
+        </p>
+        <p>
+          הפעילו את תנאי ההתנהגות על השורשים החופשיים בכל מקרה בנפרד. בממשיים: כל{" "}
+          <MathText math={"e^{\\lambda x}"} /> (או <MathText math={"x e^{\\lambda x}"} /> אם
+          השורשים החופשיים מתלכדים) צריך לקיים את התנאי הנתון. במרוכבים:{" "}
+          <MathText math={"e^{\\alpha x}\\cos(\\beta x)"} />,{" "}
+          <MathText math={"e^{\\alpha x}\\sin(\\beta x)"} />; הגדילה כאשר{" "}
+          <MathText math={"x\\to\\pm\\infty"} /> נקבעת לפי <MathText math={"\\alpha"} />, לא
+          לפי <MathText math={"|\\beta|"} />. אם שורש חופשי נופל על שורש קיים, הריבוי עולה —
+          בדקו אם זה עדיין מקיים תנאי חסימות.
+        </p>
+        {isZeroCollisionBoundedness ? (
+          <p>
+            בדקו מה יקרה לריבוי של השורש <MathText math={"0"} /> אם שני השורשים החופשיים
+            מתאפסים.
+          </p>
+        ) : null}
+      </details>
       <div className="reconstruction-two-param-tabs" role="tablist" aria-label="שתי צורות ההשלמה">
         <button
           type="button"

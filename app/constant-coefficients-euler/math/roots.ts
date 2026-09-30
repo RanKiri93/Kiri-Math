@@ -7,6 +7,7 @@ import {
   parsePositiveIntegerDraft,
 } from "../utils/parsing";
 import { expandPolynomialFromGroups } from "./polynomial";
+import { canonicalizeRootGroups } from "./rootCanonicalization";
 
 export function defaultRowsForDegree(degree: number): RootRowDraft[] {
   return Array.from({ length: degree }, (_, index) => ({
@@ -40,7 +41,10 @@ export function collectSolutionRootGroups(rows: RootRowDraft[]): SolutionRootGro
   }
 
   const groups: SolutionRootGroup[] = [];
-  const complexGroups = new Map<string, { real: number; imagAbs: number; multiplicity: number }>();
+  const complexGroups = new Map<
+    string,
+    { real: number; imagAbs: number; positive: number; negative: number }
+  >();
 
   for (const row of parsedRows) {
     if (Math.abs(row.imag) < EPS) {
@@ -49,16 +53,32 @@ export function collectSolutionRootGroups(rows: RootRowDraft[]): SolutionRootGro
     }
 
     const key = `${formatNumber(row.real)}|${formatNumber(Math.abs(row.imag))}`;
-    const group = complexGroups.get(key) ?? { real: row.real, imagAbs: Math.abs(row.imag), multiplicity: 0 };
-    group.multiplicity += row.multiplicity;
+    const group = complexGroups.get(key) ?? {
+      real: row.real,
+      imagAbs: Math.abs(row.imag),
+      positive: 0,
+      negative: 0,
+    };
+
+    if (row.imag > 0) {
+      group.positive += row.multiplicity;
+    } else {
+      group.negative += row.multiplicity;
+    }
+
     complexGroups.set(key, group);
   }
 
   for (const group of complexGroups.values()) {
-    groups.push({ kind: "complex", real: group.real, imagAbs: group.imagAbs, multiplicity: group.multiplicity });
+    groups.push({
+      kind: "complex",
+      real: group.real,
+      imagAbs: group.imagAbs,
+      multiplicity: Math.max(group.positive, group.negative),
+    });
   }
 
-  return groups;
+  return canonicalizeRootGroups(groups);
 }
 
 export function validateRootRows(rows: RootRowDraft[], degree: number): string[] {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type MouseEvent } from "react";
+import { useId, type MouseEvent, type ReactNode } from "react";
 import {
   inInterval,
   intervalLatex,
@@ -12,7 +12,6 @@ import {
 } from "../math/convergence";
 import {
   epsilonPlotSegments,
-  approximationLatex,
   clipPlotSegments,
   limitPlotSegments,
   oscillationResolutionExceeded,
@@ -38,11 +37,12 @@ type Props = {
   showLimit: boolean;
   probeX: number | null;
   onProbeChange?: (x: number) => void;
-  probeLabel?: string;
   envelope?: boolean;
   title?: string;
   /** Show x^n outside its selected domain as visual context only. */
   powerContext?: boolean;
+  /** Display-only controls for this graph (e.g. its viewing window), shown under the caption. */
+  controls?: ReactNode;
 };
 
 const formatApprox = (value: number): string => {
@@ -66,10 +66,10 @@ export function SequencePlot({
   showLimit,
   probeX,
   onProbeChange,
-  probeLabel,
   envelope = false,
   title,
   powerContext = false,
+  controls,
 }: Props) {
   const generatedId = useId().replace(/:/g, "");
   const descId = `convergence-plot-desc-${generatedId}`;
@@ -79,10 +79,6 @@ export function SequencePlot({
   const inDomain = probeX !== null && inInterval(probeX, domain);
   const inView = probeX !== null && probeX >= view.left && probeX <= view.right;
   const valueAtProbe = inDomain && probeX !== null ? sequenceValue(id, n, probeX) : null;
-  const limitAtProbe = inDomain && probeX !== null ? pointwiseLimit(id, probeX) : null;
-  const errorAtProbe = valueAtProbe !== null && limitAtProbe !== null
-    ? Math.abs(valueAtProbe - limitAtProbe)
-    : null;
   const symbol = sequenceSymbol(id);
   const resolutionWarning = oscillationResolutionExceeded(id, n, view);
   const sequenceSegments = sequencePlotSegments(id, n, domain, view);
@@ -129,6 +125,8 @@ export function SequencePlot({
           חלון התצוגה: <MathText math={`[${formatApprox(view.left)},${formatApprox(view.right)}]`} />
         </span>
       </figcaption>
+
+      {controls && <div className="convergence-plot-controls">{controls}</div>}
 
       <svg
         className="convergence-svg"
@@ -234,27 +232,8 @@ export function SequencePlot({
         {probeX !== null && <span className="convergence-key" data-kind="probe">נקודת בדיקה</span>}
       </div>
 
-
       {resolutionWarning && (
         <p className="convergence-warning">התנודות צפופות מדי להצגת מסלול אמין; מוצגת מעטפת התנודות.</p>
-      )}
-
-      {probeX !== null && (
-        <div className="convergence-readout" aria-live="polite">
-          <strong>{probeLabel ?? "נקודת בדיקה"}: <MathText math={`x${approximationLatex(probeX)}`} /></strong>
-          {!inDomain ? <span>הנקודה מחוץ לתחום</span> : <>
-              {!inView && <span>הנקודה מחוץ לחלון התצוגה</span>}
-              {inView && valueAtProbe !== null && Math.abs(valueAtProbe) > PLOT_Y_MAX && <span>ערך הנקודה מחוץ לטווח האנכי</span>}
-              <span className="convergence-readout-values" dir="ltr">
-                <MathText math={`${symbol}_{${n}}(${formatApprox(probeX)})${approximationLatex(valueAtProbe!)}`} />
-                {showLimit && limitAtProbe !== null && <>
-                  ; <MathText math={`${symbol}(${formatApprox(probeX)})${approximationLatex(limitAtProbe)}`} />
-                  ; <MathText math={`|${symbol}_{${n}}-${symbol}|${approximationLatex(errorAtProbe!)}`} />
-                </>}
-                {showLimit && limitAtProbe === null && <>; אין גבול סופי בנקודה</>}
-              </span>
-            </>}
-        </div>
       )}
     </figure>
   );

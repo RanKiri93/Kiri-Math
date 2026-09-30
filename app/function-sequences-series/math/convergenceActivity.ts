@@ -9,6 +9,25 @@ export const UNIT_INTERVAL: Interval = { left: 0, right: 1, leftClosed: true, ri
 export const POSITIVE_RAY: Interval = { left: 0, right: Infinity, leftClosed: true, rightClosed: false };
 export const REAL_LINE: Interval = { left: -Infinity, right: Infinity, leftClosed: false, rightClosed: false };
 
+const OPEN_POSITIVE_RAY: Interval = { ...POSITIVE_RAY, leftClosed: false };
+
+/**
+ * Concrete candidate domains per sequence in the guided domain-change step, six each with
+ * exactly one correct answer (tested): f_n converges uniformly only on [1,∞) of its list,
+ * g_n only on [0,1] of its list.
+ */
+export const REPAIR_CHOICES: Record<PairId, readonly Interval[]> = {
+  near: [
+    UNIT_INTERVAL, OPEN_POSITIVE_RAY, { ...POSITIVE_RAY, left: 1 },
+    { ...UNIT_INTERVAL, leftClosed: false, rightClosed: false }, POSITIVE_RAY,
+    { left: 0, right: 10, leftClosed: false, rightClosed: true },
+  ],
+  far: [
+    UNIT_INTERVAL, OPEN_POSITIVE_RAY, { ...POSITIVE_RAY, left: 1 },
+    { ...OPEN_POSITIVE_RAY, left: 1 }, POSITIVE_RAY, { ...POSITIVE_RAY, left: 10 },
+  ],
+};
+
 export function trackingPoint(rule: TrackingRule, n: number, fixed: number): number {
   return rule === "reciprocal" ? 1 / n : rule === "index" ? n : fixed;
 }

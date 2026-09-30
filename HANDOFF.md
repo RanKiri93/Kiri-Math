@@ -1,5 +1,54 @@
 # Handoff — Kiri Math convergence lab
 
+## Newest checkpoint — 2026-09-29 (supremum test)
+
+The supremum-test activity "מבחן הסופרמום: חישוב וטיעון" v1 is implemented in
+`app/function-sequences-series/` (menu card after the lab; order E1 -> E1' -> E2 -> E3 -> E3'; 27 steps). Answers are
+tokens in guided templates, with no CAS and no free-formula input. The lecturer's decisions
+are in `docs/plans/supremum-test-activity.md` section 7; structure is in `ARCHITECTURE.md` section 6.
+
+v2 candidates: the `[a,infinity)` step, a "find the flawed line" task, and the extra
+example `x/(n+x)`.
+
+Verification: vitest, typecheck and lint pass; a headless browser walkthrough of all 27
+steps at 1440 px found no console or KaTeX errors after the fixes.
+
+## Earlier checkpoint — 2026-09-29 (convergence lab lessons)
+
+The convergence lab now has four sequentially unlocked lessons. Existing activity
+`onComplete` callbacks unlock the next lesson on correct completion or answer reveal;
+`lessonProgress.ts` owns the gate. Warm-up accepts any selected family's correct fixed-point
+prediction (the optional band check is not required); power and oscillation unlock on their
+domain completion/classification, and the paired route ends with its final domain repair.
+There is no warm-up skip or direct challenge entry. The paired component retains its
+internal `challenge` prop, but the lab shell uses guided mode. The additional-guidance
+control is unchanged.
+
+`ConvergenceNavigator` and `ConvergencePaging` provide top and footer previous/next
+controls. Unlocking does not auto-advance: explicitly choose Next to preserve feedback and
+exploration. Lesson changes fade out in 120ms and in in 180ms; reduced-motion bypasses the
+animation. The return-to-menu action is in the bounded lab header. Four empty
+`ReactNode` explanation slots sit below the lesson-part titles; no teaching text was added.
+
+Visited lesson components stay mounted but hidden. Returning to definitions or the
+SubjectModule menu preserves in-memory work; refresh or leaving the route resets it. There
+is no persistence. After explicit final completion, the summary offers review of the last
+lesson and does not automatically reset. The SubjectModule retains the lab in a hidden host
+after its first mount.
+
+Added `lessonProgress.test.ts` and `components/convergenceNavigation.test.ts`.
+Verification passed: `npm test` (306 tests in 29 files), `npm run typecheck`, and targeted
+ESLint on the changed lesson files. The full browser route passed again after final styling,
+including footer navigation, completion of all four lessons, warm-up wrong and correct
+answers (with the optional band), correct power/oscillation paths, paired-stage reveals,
+locks, revisit/reference/menu roundtrips, and reduced motion at widths
+2000/1440/1180/820/390/320 plus short 844x390. This records route coverage, not every
+answer path independently for every activity.
+
+This guided progression supersedes the 2026-09-24 decisions below that allowed a skippable
+warm-up/direct challenge entry or reset on re-entry. No math, checker, or question logic
+was changed. Grid, math, and RTL conventions remain unchanged.
+
 ## Newest checkpoint — 2026-09-25
 
 The Chapter 1 subject split is structurally complete: four separate module routes are
@@ -181,6 +230,10 @@ application dependency added for the convergence lab.
 - `opencode.json`: project agent registrations, model choices and prompt-file references.
 - `.opencode/agents/orchestrator.md`: primary orchestrator definition.
 - `.opencode/.gitignore`: excludes generated OpenCode dependencies and package files.
+- `.claude/agents/*.md`: Claude Code orchestrator, specialist stubs that load
+  `.agents/<role>.md`, and overrides of the built-in `Plan`, `Explore` and
+  `general-purpose` agents. `.claude/settings.json` makes the orchestrator the main
+  session. See `.agents/README.md`.
 
 Keep these definitions tracked. OpenAI/OpenCode credentials and authentication are
 machine-local and **must not be committed**. The user updated their OpenAI connection

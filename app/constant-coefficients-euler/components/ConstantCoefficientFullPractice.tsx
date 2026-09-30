@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   difficultyLabels,
   emptyQuizStats,
@@ -36,10 +36,9 @@ import {
 } from "../practice/rootEvaluation";
 import {
   createInitialExerciseState,
-  recordAbandonedQuestion,
   recordAssistedCompletion,
   recordIndependentCompletion,
-  recordQuestionStarted,
+  recordQuestionAbandon,
 } from "../practice/stats";
 import {
   defaultStabilityAnswer,
@@ -107,7 +106,7 @@ export function ConstantCoefficientFullPractice() {
   const [seed, setSeed] = useState(104137);
   const [includeStability, setIncludeStability] = useState(true);
   const [activeIncludeStability, setActiveIncludeStability] = useState(true);
-  const [includeInitialConditions, setIncludeInitialConditions] = useState(false);
+  const [includeInitialConditions, setIncludeInitialConditions] = useState(true);
   const [activeIncludeInitialConditions, setActiveIncludeInitialConditions] = useState(false);
   const [stats, setStats] = useState(emptyQuizStats);
 
@@ -125,8 +124,6 @@ export function ConstantCoefficientFullPractice() {
   const [initialConditionsResult, setInitialConditionsResult] = useState<InitialCoefficientEvaluationResult | null>(null);
   const [stabilityResult, setStabilityResult] = useState<StabilityEvaluationResult | null>(null);
 
-  const initialStartedRef = useRef(false);
-
   const question = useMemo(
     () =>
       buildConstantCoefficientPracticeQuestion(degree, difficulty, seed, {
@@ -134,13 +131,6 @@ export function ConstantCoefficientFullPractice() {
       }),
     [degree, difficulty, seed, activeIncludeInitialConditions],
   );
-
-  useEffect(() => {
-    if (!initialStartedRef.current) {
-      initialStartedRef.current = true;
-      setStats((current) => recordQuestionStarted(current));
-    }
-  }, []);
 
   const rootsLocked = !exercise.rootsEverUnlocked;
   const basisLocked = !exercise.basisEverUnlocked;
@@ -313,9 +303,7 @@ export function ConstantCoefficientFullPractice() {
     nextIncludeInitialConditions?: boolean;
     abandonIncomplete?: boolean;
   }) => {
-    if (abandonIncomplete && !exercise.completed) {
-      setStats((current) => recordAbandonedQuestion(current));
-    }
+    setStats((current) => recordQuestionAbandon(current, exercise, abandonIncomplete));
     const resolvedIncludeInitialConditions = resolveIncludeInitialConditions(
       nextDegree,
       nextIncludeInitialConditions,
@@ -328,7 +316,6 @@ export function ConstantCoefficientFullPractice() {
     setActiveIncludeInitialConditions(resolvedIncludeInitialConditions);
     setSeed((current) => current + seedStep);
     clearAnswerOnly(nextDegree);
-    setStats((current) => recordQuestionStarted(current));
   };
 
   const checkPolynomial = () => {
@@ -340,6 +327,8 @@ export function ConstantCoefficientFullPractice() {
     if (result.isCorrect) {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
         polynomialStatus: "correct",
         rootsStatus: current.rootsEverUnlocked ? current.rootsStatus : "unanswered",
         rootsEverUnlocked: true,
@@ -347,6 +336,7 @@ export function ConstantCoefficientFullPractice() {
     } else {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
         polynomialStatus: "incorrect",
       }));
     }
@@ -364,6 +354,7 @@ export function ConstantCoefficientFullPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       polynomialStatus: "revealed",
       rootsStatus: current.rootsEverUnlocked ? current.rootsStatus : "unanswered",
       rootsEverUnlocked: true,
@@ -380,6 +371,8 @@ export function ConstantCoefficientFullPractice() {
     if (result.isCorrect) {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
         rootsStatus: "correct",
         basisStatus: current.basisEverUnlocked ? current.basisStatus : "unanswered",
         basisEverUnlocked: true,
@@ -387,6 +380,7 @@ export function ConstantCoefficientFullPractice() {
     } else {
       setExercise((current) => ({
         ...current,
+        hasEngaged: true,
         rootsStatus: "incorrect",
       }));
     }
@@ -408,6 +402,7 @@ export function ConstantCoefficientFullPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       rootsStatus: "revealed",
       basisStatus: current.basisEverUnlocked ? current.basisStatus : "unanswered",
       basisEverUnlocked: true,
@@ -424,7 +419,7 @@ export function ConstantCoefficientFullPractice() {
     if (tokens.length !== degree) {
       setBasisParseErrors([`יש להזין ${degree} איברי בסיס.`]);
       setBasisResult(null);
-      setExercise((current) => ({ ...current, basisStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, basisStatus: "incorrect" }));
       return;
     }
 
@@ -433,7 +428,7 @@ export function ConstantCoefficientFullPractice() {
     setBasisResult(result);
 
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, basisStatus: "correct" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, hadCorrectStage: true, basisStatus: "correct" }));
       if (activeIncludeInitialConditions) {
         unlockInitialConditionsStage();
       } else if (activeIncludeStability) {
@@ -442,7 +437,7 @@ export function ConstantCoefficientFullPractice() {
         applyCompletion(exercise.usedReveal);
       }
     } else {
-      setExercise((current) => ({ ...current, basisStatus: "incorrect" }));
+      setExercise((current) => ({ ...current, hasEngaged: true, basisStatus: "incorrect" }));
     }
   };
 
@@ -457,6 +452,7 @@ export function ConstantCoefficientFullPractice() {
     });
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       basisStatus: "revealed",
       usedReveal: true,
     }));
@@ -485,14 +481,23 @@ export function ConstantCoefficientFullPractice() {
     );
     setInitialConditionsResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, initialConditionsStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        initialConditionsStatus: "correct",
+      }));
       if (activeIncludeStability) {
         unlockStabilityStage();
       } else {
         applyCompletion(exercise.usedReveal);
       }
     } else {
-      setExercise((current) => ({ ...current, initialConditionsStatus: "incorrect" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        initialConditionsStatus: "incorrect",
+      }));
     }
   };
 
@@ -512,6 +517,7 @@ export function ConstantCoefficientFullPractice() {
     );
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       initialConditionsStatus: "revealed",
       usedReveal: true,
     }));
@@ -529,10 +535,19 @@ export function ConstantCoefficientFullPractice() {
     const result = evaluateStabilityAnswer(stabilityAnswer, question.roots);
     setStabilityResult(result);
     if (result.isCorrect) {
-      setExercise((current) => ({ ...current, stabilityStatus: "correct" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        hadCorrectStage: true,
+        stabilityStatus: "correct",
+      }));
       applyCompletion(exercise.usedReveal);
     } else {
-      setExercise((current) => ({ ...current, stabilityStatus: "incorrect" }));
+      setExercise((current) => ({
+        ...current,
+        hasEngaged: true,
+        stabilityStatus: "incorrect",
+      }));
     }
   };
 
@@ -543,6 +558,7 @@ export function ConstantCoefficientFullPractice() {
     setStabilityResult(evaluateStabilityAnswer(answer, question.roots));
     setExercise((current) => ({
       ...current,
+      hasEngaged: true,
       stabilityStatus: "revealed",
       usedReveal: true,
     }));
@@ -716,7 +732,7 @@ export function ConstantCoefficientFullPractice() {
         <div className="full-practice-steps">
           <StepCard
             stepNumber={1}
-            title="הפולינום האופייני"
+            title="הפולינום האופייני המנורמל"
             status={exercise.polynomialStatus}
             locked={false}
           >
@@ -796,6 +812,13 @@ export function ConstantCoefficientFullPractice() {
             />
             <details className="intro-expansion">
               <summary>רמז</summary>
+              <p>מצאו את שורשי הפולינום האופייני שחישבתם בשלב 1.</p>
+              <details className="intro-sub-expansion">
+                <summary>רמז חזק: פירוק לגורמים</summary>
+                <p className="intro-equation">
+                  <MathText block math={`p(r)=${question.factoredPolynomialLatex}`} />
+                </p>
+              </details>
               <RootStageHints />
             </details>
             {rootResult && !rootResult.isCorrect ? (

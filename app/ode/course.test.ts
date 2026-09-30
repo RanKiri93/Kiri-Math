@@ -98,9 +98,11 @@ describe("odeCourse notes and resources", () => {
     expect(notesPageHref(odeCourse, 1)).toBe(`/courses/ode/notes.pdf#page=${1 + odeCourse.notes.pageOffset}`);
   });
 
-  it("point at files that exist in public/", () => {
-    for (const href of [odeCourse.notes.href, ...odeCourse.resources.map((resource) => resource.href)]) {
-      expect(existsSync(join(repoRoot, "public", ...href.split("/").filter(Boolean))), href).toBe(true);
+  it("keeps every course PDF private and absent from public/", () => {
+      for (const href of [odeCourse.notes.href, ...odeCourse.resources.map((resource) => resource.href)]) {
+      const relative = href.replace(/^\/courses\//, "");
+      expect(existsSync(join(repoRoot, "public", "courses", relative))).toBe(false);
+      expect(existsSync(join(repoRoot, "private", "courses", relative)), href).toBe(true);
     }
   });
 });

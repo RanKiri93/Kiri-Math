@@ -5,6 +5,12 @@ import type {
   ReconstructionExerciseState,
 } from "../types";
 
+type SessionEngagement = {
+  completed: boolean;
+  hasEngaged: boolean;
+  hadCorrectStage: boolean;
+};
+
 export function createInitialExerciseState(): FullSolutionExerciseState {
   return {
     polynomialStatus: "unanswered",
@@ -17,6 +23,8 @@ export function createInitialExerciseState(): FullSolutionExerciseState {
     initialConditionsEverUnlocked: false,
     stabilityEverUnlocked: false,
     usedReveal: false,
+    hasEngaged: false,
+    hadCorrectStage: false,
     completed: false,
     completionKind: "none",
   };
@@ -36,6 +44,8 @@ export function createInitialEulerExerciseState(): EulerTransformationExerciseSt
     yBasisEverUnlocked: false,
     stabilityEverUnlocked: false,
     usedReveal: false,
+    hasEngaged: false,
+    hadCorrectStage: false,
     completed: false,
     completionKind: "none",
   };
@@ -53,22 +63,17 @@ export function createInitialReconstructionExerciseState(): ReconstructionExerci
     outcomeEverUnlocked: false,
     conclusionEverUnlocked: false,
     usedReveal: false,
+    hasEngaged: false,
+    hadCorrectStage: false,
     completed: false,
     completionKind: "none",
-  };
-}
-
-export function recordQuestionStarted(stats: QuizSessionStats): QuizSessionStats {
-  return {
-    ...stats,
-    answered: stats.answered + 1,
   };
 }
 
 export function recordIndependentCompletion(stats: QuizSessionStats): QuizSessionStats {
   const currentStreak = stats.currentStreak + 1;
   return {
-    answered: stats.answered,
+    answered: stats.answered + 1,
     correct: stats.correct + 1,
     currentStreak,
     bestStreak: Math.max(stats.bestStreak, currentStreak),
@@ -78,6 +83,7 @@ export function recordIndependentCompletion(stats: QuizSessionStats): QuizSessio
 export function recordAssistedCompletion(stats: QuizSessionStats): QuizSessionStats {
   return {
     ...stats,
+    answered: stats.answered + 1,
     currentStreak: 0,
   };
 }
@@ -89,12 +95,27 @@ export function recordAbandonedQuestion(stats: QuizSessionStats): QuizSessionSta
   };
 }
 
-export function updateStats(stats: QuizSessionStats, isCorrect: boolean): QuizSessionStats {
-  const currentStreak = isCorrect ? stats.currentStreak + 1 : 0;
+export function recordAnsweredMiss(stats: QuizSessionStats): QuizSessionStats {
   return {
+    ...stats,
     answered: stats.answered + 1,
-    correct: stats.correct + (isCorrect ? 1 : 0),
-    currentStreak,
-    bestStreak: Math.max(stats.bestStreak, currentStreak),
+    currentStreak: 0,
   };
+}
+
+export function recordQuestionAbandon(
+  stats: QuizSessionStats,
+  exercise: SessionEngagement,
+  abandonIncomplete: boolean,
+): QuizSessionStats {
+  if (!abandonIncomplete || exercise.completed) {
+    return stats;
+  }
+  if (exercise.hadCorrectStage) {
+    return recordAnsweredMiss(stats);
+  }
+  if (exercise.hasEngaged) {
+    return recordAbandonedQuestion(stats);
+  }
+  return stats;
 }
