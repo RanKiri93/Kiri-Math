@@ -16,17 +16,21 @@ describe("subject module landing pages", () => {
     expect(html).toContain('class="module-notes-list"');
   });
 
-  it("shows the available activities and three specifically described planned activities", () => {
+  it("shows all five activities and no planned activity", () => {
     const html = renderToStaticMarkup(createElement(SubjectModule, { subject: "function-sequences" }));
-    expect(html.match(/כניסה לפעילות/g)).toHaveLength(2);
-    expect(html).toContain("רציפות פונקציית הגבול");
+    expect(html.match(/כניסה לפעילות/g)).toHaveLength(5);
+    expect(html).toContain("5. גבול ונגזרת");
+    expect(html).toContain("6. תרגול מסכם");
+    expect(html.match(/כניסה לתרגול/g)).toHaveLength(1);
+    expect(html).toContain("4. גבול ואינטגרל");
+    expect(html).toContain("3. רציפות פונקציית הגבול");
     expect(html).toContain("גבול ואינטגרל");
     expect(html).toContain("גבול ונגזרת");
     expect(html).toContain("מתי רציפות של איברי הסדרה");
     expect(html).toContain("להחליף בין גבול הסדרה לבין אינטגרציה");
     expect(html).toContain("מאפשרים לגזור את פונקציית הגבול");
-    expect(html.match(/פעילות מתוכננת/g)).toHaveLength(3);
-    expect(html.match(/בבנייה/g)).toHaveLength(3);
+    expect(html).not.toContain("פעילות מתוכננת");
+    expect(html).not.toContain("בבנייה");
   });
 });
 

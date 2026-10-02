@@ -8,6 +8,9 @@ import { MathInlineText } from "./MathInlineText";
 import { SupSequencePlot, epsilonReadoutText } from "./SupSequencePlot";
 import { SupremumIntro } from "./SupremumIntro";
 import { SupremumActivity } from "./SupremumActivity";
+import { SolvedNote } from "./GuidedStepParts";
+import { FullProofContent, SupremumProofDialog } from "./SupremumProofDialog";
+import { SUP_FULL_PROOFS } from "../math/supremumProofs";
 import { SupremumPlot } from "./SupremumPlot";
 import { SliderPanel } from "./ConvergenceUI";
 
@@ -30,7 +33,10 @@ describe("supremum activity rendering", () => {
   it("renders the intro statement in math islands without KaTeX errors", () => {
     const html = renderToStaticMarkup(createElement(SupremumIntro, { returning: false, onStart: () => {} }));
     expect(html).not.toContain("katex-error");
-    expect(html).toContain("מבחן הסופרמום: מחשבים ומנמקים");
+    expect(html).toContain("מבחן הסופרמום: הוכחת/הפרכת התכנסות במידה שווה");
+    expect(html).toContain("ארסנל היכולות שלנו");
+    // The theorem is emphasized like the convergence definitions of the first activity.
+    expect(html.match(/class="convergence-definition formal"/g)).toHaveLength(1);
     expect(html).toContain("convergence-definition");
     expect(html).toContain(String.raw`M_n=\sup_{x\in D}|f_n(x)-f(x)|`);
     expect(html).toContain("<ol>");
@@ -62,7 +68,11 @@ describe("supremum activity rendering", () => {
   it("renders the first step in LTR islands without KaTeX errors", () => {
     const html = renderToStaticMarkup(createElement(SupremumActivity, { initialView: "E1" }));
     expect(html).not.toContain("katex-error");
-    expect(html).toMatch(/class="convergence-formula-card supremum-formula-card"><div class="convergence-formula-pair" dir="ltr">/);
+    // The example's sequence and domain sit in the example header, not in the step card.
+    expect(html).toMatch(/<div class="supremum-example-formula" id="supremum-example-formula" dir="ltr">/);
+    expect(html).toContain(String.raw`f_n(x)=nxe^{-nx},\quad x\in [0,\infty)`);
+    expect(html).toMatch(/<h3 class="convergence-part-title" id="supremum-example-title">דוגמה 1<\/h3>/);
+    expect(html).not.toContain("convergence-formula-card");
     expect(html).toMatch(/<figure class="convergence-plot supremum-plot" dir="ltr">/);
     expect(html).toMatch(/<svg class="convergence-svg supremum-svg"[^>]*dir="ltr"/);
     expect(html).toMatch(/<span class="convergence-step-label">שלב 1 מתוך \d+<\/span>/);
@@ -84,13 +94,71 @@ describe("supremum activity rendering", () => {
   it("renders every step's Hebrew text without KaTeX errors", () => {
     for (const id of SUP_EXAMPLE_ORDER) {
       for (const step of SUP_STEPS[id]) {
-        const texts = [step.title, step.prompt, step.solvedNote, ...step.hints, step.disclosure?.body ?? "", ...step.parts.map((p) => p.lead ?? "")];
+        const texts = [step.title, step.prompt, step.solvedNote, step.minimalProof ?? "", ...step.hints, step.disclosure?.body ?? "", ...step.parts.map((p) => p.lead ?? ""),
+          ...step.parts.flatMap((p) => p.kind === "checklist" ? p.checklist.items.map((i) => `${i.label}, ${i.unneeded ?? ""}`) : [])];
         for (const text of texts) {
           const html = renderToStaticMarkup(createElement(MathInlineText, { text }));
           expect(html, `${step.id}: ${text}`).not.toContain("katex-error");
         }
       }
     }
+  });
+});
+
+describe("solved-step feedback", () => {
+  it("shows the minimal proof, then one note per ticked unneeded reason", () => {
+    const step = SUP_STEPS.E1.find((s) => s.id === "E1-3")!;
+    const part = step.parts[0];
+    const revealed = renderToStaticMarkup(createElement(SolvedNote, { step, answers: { [part.id]: part.reveal as string[] } }));
+    expect(revealed).toContain('class="supremum-minimal-proof"');
+    expect(revealed).toContain("הוכחה מינימלית");
+    expect(revealed).not.toContain("נימוק מיותר");
+    const ticked = renderToStaticMarkup(createElement(SolvedNote, { step, answers: { [part.id]: [...(part.reveal as string[]), "zero-left"] } }));
+    expect(ticked.match(/class="supremum-unneeded"/g)).toHaveLength(1);
+    expect(ticked.indexOf("נימוק מיותר")).toBeGreaterThan(ticked.indexOf("הוכחה מינימלית"));
+    expect(ticked).toContain("זה טוב לדעת שהוא לא מתקבל בנקודה זו");
+    expect(ticked).not.toContain("katex-error");
+  });
+
+  it("shows only the note for steps without a minimal proof", () => {
+    const step = SUP_STEPS.E1[0];
+    const html = renderToStaticMarkup(createElement(SolvedNote, { step, answers: undefined }));
+    expect(html).not.toContain("supremum-minimal-proof");
+  });
+});
+
+describe("full-proof pop-up", () => {
+  it("renders every example's complete proof without KaTeX errors, ending in the example's verdict", () => {
+    for (const id of SUP_EXAMPLE_ORDER) {
+      const html = renderToStaticMarkup(createElement(FullProofContent, { id }));
+      expect(html, id).not.toContain("katex-error");
+      expect(html).toMatch(/<div class="supremum-proof-formula" dir="ltr">/);
+      expect(html.match(/<li>/g)?.length ?? 0, id).toBeGreaterThanOrEqual(4);
+      const sections = SUP_FULL_PROOFS[id].sections;
+      const conclusion = sections[sections.length - 1].body;
+      expect(conclusion, id).toContain("מבחן הסופרמום");
+      expect(conclusion.includes("אינה במידה שווה"), id).toBe(SUP_EXAMPLES[id].verdict === "not-uniform");
+    }
+  });
+
+  it("stays closed and empty until an example is finished", () => {
+    const closed = renderToStaticMarkup(createElement(SupremumProofDialog, {
+      id: "E1", position: 1, open: false, nextLabel: "לדוגמה הבאה", onNext: () => {}, onClose: () => {},
+    }));
+    expect(closed).toMatch(/^<dialog class="supremum-proof-dialog" aria-labelledby="supremum-proof-title"><\/dialog>$/);
+    const shown = renderToStaticMarkup(createElement(SupremumProofDialog, {
+      id: "E1", position: 1, open: true, nextLabel: "לדוגמה הבאה", onNext: () => {}, onClose: () => {},
+    }));
+    expect(shown).toContain("סיכום דוגמה 1");
+    expect(shown).toContain("הוכחה מלאה ותמציתית");
+    expect(shown).toContain("חזרה לדוגמה");
+    expect(shown).toContain("לדוגמה הבאה");
+  });
+
+  it("offers no reopen action on an unfinished example", () => {
+    const html = renderToStaticMarkup(createElement(SupremumActivity, { initialView: "E1" }));
+    expect(html).not.toContain("supremum-proof-open");
+    expect(html).not.toContain("supremum-proof-panel");
   });
 });
 
@@ -107,7 +175,10 @@ describe("G1: the function graph", () => {
     }
     expect(full).toContain('data-marker="argmax"');
     expect(plot(E1, { ...BASE_GRAPH, maxMarker: "origin" })).toContain('data-marker="origin"');
-    expect(plot(E1, { ...BASE_GRAPH, tangent: true })).toMatch(/f_\{5\}&#x27;|f_\{5\}'/);
+    expect(plot(E1, { ...BASE_GRAPH, tangent: true })).toContain("supremum-tangent");
+    // No numeric readout panel under the graph.
+    expect(full).not.toContain("supremum-readout");
+    expect(full).not.toContain("convergence-readout");
     expect(plot(E1, { ...BASE_GRAPH, signStrip: true })).not.toContain("supremum-sup-line");
   });
 

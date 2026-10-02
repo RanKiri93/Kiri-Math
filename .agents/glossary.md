@@ -102,6 +102,10 @@ Used in the supremum-test activity (`math/supremumArgument.ts`).
 | Candidate (for the maximum) | מועמד |
 | Fermat's theorem | משפט פרמה |
 | Weierstrass extreme value theorem | משפט ויירשטראס |
+| Mean value theorem (Lagrange) | משפט לגרנז' (long form: משפט הערך הממוצע של לגרנז') |
+| A uniform limit of continuous functions is continuous | משפט הרציפות (of the limit function; in full: משפט על רציפות פונקציית הגבול) |
+| Term-by-term integration / differentiation theorem | משפט האינטגרציה / משפט הגזירה (איבר־איבר) |
+| Ray [a,∞) / (−∞,a] | קרן (feminine: «הקרן רחוקה»); a bounded interval is קטע, ℝ is הישר |
 | Maximum attained / supremum | מקסימום / סופרמום |
 | Monotone (increasing / decreasing) | מונוטונית (עולה / יורדת) |
 

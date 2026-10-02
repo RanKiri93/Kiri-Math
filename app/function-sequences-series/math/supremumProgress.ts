@@ -12,13 +12,14 @@ export function isExampleComplete(id: SupExampleId, done: StepsDone): boolean {
   return SUP_STEPS[id].every((step) => done[step.id] !== undefined);
 }
 
-export function completedExamples(done: StepsDone): SupExampleId[] {
-  return SUP_EXAMPLE_ORDER.filter((id) => isExampleComplete(id, done));
+/** Finished examples; `finishedBefore` keeps examples the student finished and then restarted. */
+export function completedExamples(done: StepsDone, finishedBefore: readonly SupExampleId[] = []): SupExampleId[] {
+  return SUP_EXAMPLE_ORDER.filter((id) => finishedBefore.includes(id) || isExampleComplete(id, done));
 }
 
 /** Examples open in order: each one, and the finish view, needs every earlier example finished. */
-export function canOpenSupremumView(view: SupremumView, done: StepsDone): boolean {
+export function canOpenSupremumView(view: SupremumView, done: StepsDone, finishedBefore: readonly SupExampleId[] = []): boolean {
   if (view === "intro") return true;
   const index = view === "complete" ? SUP_EXAMPLE_ORDER.length : SUP_EXAMPLE_ORDER.indexOf(view);
-  return index >= 0 && SUP_EXAMPLE_ORDER.slice(0, index).every((id) => isExampleComplete(id, done));
+  return index >= 0 && SUP_EXAMPLE_ORDER.slice(0, index).every((id) => finishedBefore.includes(id) || isExampleComplete(id, done));
 }

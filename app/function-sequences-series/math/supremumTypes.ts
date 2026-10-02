@@ -78,6 +78,8 @@ export type ChecklistItem = {
   required: boolean;
   /** True but not needed for the argument: accepted whether ticked or not (`required` is false). */
   optional?: boolean;
+  /** For an optional item: why it is not needed, shown after a correct answer when it was ticked. */
+  unneeded?: string;
   diagnosis?: string;
 };
 

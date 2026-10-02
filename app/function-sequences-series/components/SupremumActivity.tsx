@@ -16,32 +16,25 @@ import {
   type GraphFlags,
   type PartAnswer,
   type Step,
-  type StepAnswers,
   type StepPart,
+  type StepAnswers,
 } from "../math/supremumArgument";
-import type { CandidateFilling, SlotFilling, Token, TokenId } from "../math/supremumTypes";
-import { orderChecklist, orderChoice, orderTable, orderTemplate } from "../math/supremumOrder";
 import { SUP_VIEWS, clampProbe, defaultViewIndex, probeBounds, probeSliderBounds } from "../math/supremumViews";
-import { canOpenSupremumView, completedExamples, type StepsDone, type SupremumView } from "../math/supremumProgress";
-import { CandidateTable } from "./CandidateTable";
+import { canOpenSupremumView, completedExamples, isExampleComplete, type StepsDone, type SupremumView } from "../math/supremumProgress";
 import { StageNavigator, StagePaging, type Stage, type StageCopy } from "./ConvergenceNavigator";
 import { ExploreActions, FeedbackBox, Hints, LabWorkspace, SliderPanel, TaskCard, type Feedback } from "./ConvergenceUI";
 import { MathInlineText } from "./MathInlineText";
 import { MathText } from "./MathText";
-import { ReasonChecklist } from "./ReasonChecklist";
 import { SupremumIntro } from "./SupremumIntro";
 import { supremumExampleExplanations } from "./SupremumExampleExplanations";
-import { SlotTemplate } from "./SlotTemplate";
-import { SpecChoice } from "./SpecChoice";
+import { SupremumProofDialog } from "./SupremumProofDialog";
+import { PartView, SolvedNote, tokenMap, type WrongLocation } from "./GuidedStepParts";
 import { SupSequencePlot } from "./SupSequencePlot";
 import { SupremumPlot } from "./SupremumPlot";
 
-type WrongLocation = { partId?: string; slotId?: string; rowId?: string; itemId?: string };
 type ShownFeedback = { stepId: string; status: "wrong" | "neutral"; text: string; wrong?: WrongLocation };
 
-const TOKENS: Record<TokenId, Token> = Object.fromEntries(
-  Object.entries(SUP_TOKENS).map(([id, label]) => [id, { id, label }]),
-);
+const TOKENS = tokenMap(SUP_TOKENS);
 const EXAMPLE_COUNT = SUP_EXAMPLE_ORDER.length;
 const EXAMPLE_CHIP_LABELS: Record<SupExampleId, string> = { E1: "1", E1p: "2", E2: "3", E3: "4", E3p: "5" };
 const EPSILON_LOCKED_HINT = "רוחב הרצועה ייפתח בהמשך";
@@ -96,35 +89,6 @@ function FormulaCard({ id }: { id: SupExampleId }) {
   </div>;
 }
 
-function PartView({ part, answer, wrong, solved, onChange }: {
-  part: StepPart; answer: PartAnswer; wrong: WrongLocation | undefined; solved: boolean; onChange: (next: PartAnswer) => void;
-}) {
-  const lead = part.lead && <p className="supremum-part-lead"><MathInlineText text={part.lead} /></p>;
-  switch (part.kind) {
-    case "slots":
-      return <div className="supremum-part">{lead}
-        <SlotTemplate spec={orderTemplate(part.template)} tokens={TOKENS} filling={(answer as SlotFilling | undefined) ?? {}}
-          wrongSlotId={wrong?.slotId} disabled={solved} onChange={onChange} />
-      </div>;
-    case "table":
-      return <div className="supremum-part">{lead}
-        <CandidateTable spec={orderTable(part.table)} tokens={TOKENS} captions={part.captions}
-          filling={(answer as CandidateFilling | undefined) ?? { rows: {} }}
-          wrongRowId={wrong?.rowId} wrongSlotId={wrong?.slotId} disabled={solved} onChange={onChange} />
-      </div>;
-    case "checklist":
-      return <div className="supremum-part">{lead}
-        <ReasonChecklist spec={orderChecklist(part.checklist)} selected={(answer as string[] | undefined) ?? []}
-          wrongItemId={wrong?.itemId} disabled={solved} onChange={onChange} />
-      </div>;
-    case "choice":
-      return <div className="supremum-part">{lead}
-        <SpecChoice spec={orderChoice(part.choice)} value={(answer as string | undefined) ?? ""}
-          wrongOptionId={wrong?.itemId} disabled={solved} onChange={onChange} />
-      </div>;
-  }
-}
-
 /**
  * "Supremum test: compute and argue". A walk through the five examples of `SUP_STEPS`, presented
  * as stages like the convergence lab: a goal page, one stage per example with its own title and
@@ -145,10 +109,14 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
   const [lastExample, setLastExample] = useState<SupExampleId>(SUP_EXAMPLE_ORDER[0]);
   const [started, setStarted] = useState(initialView !== "intro");
   const [exploring, setExploring] = useState(false);
+  /** The finished example's full-proof pop-up; it opens by itself when the example's last step is done. */
+  const [proofOpen, setProofOpen] = useState(false);
   const [exploreIndex, setExploreIndex] = useState(EXAMPLE_COUNT - 1);
   const [stepAt, setStepAt] = useState<Record<SupExampleId, number>>(() => record(() => 0));
   const [answers, setAnswers] = useState<Record<string, StepAnswers>>({});
   const [done, setDone] = useState<StepsDone>({});
+  /** Examples finished at some point; restarting an example does not remove it from here. */
+  const [finishedBefore, setFinishedBefore] = useState<SupExampleId[]>([]);
   const [feedback, setFeedback] = useState<ShownFeedback | null>(null);
   const [n, setN] = useState(1);
   const [epsilon, setEpsilon] = useState(0.1);
@@ -171,14 +139,15 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
   const probe = clampProbe(ex, plotView, probes[id]);
   const bounds = probeBounds(ex);
   const sliderBounds = probeSliderBounds(ex, plotView);
-  const finished = completedExamples(done);
-  const canOpen = (next: string) => canOpenSupremumView(next as SupremumView, done);
+  const finished = completedExamples(done, finishedBefore);
+  const canOpen = (next: string) => canOpenSupremumView(next as SupremumView, done, finishedBefore);
+  const hasProgress = stepIndex > 0 || steps.some((s) => done[s.id] !== undefined);
   const following: SupremumView = exIndex < EXAMPLE_COUNT - 1 ? SUP_EXAMPLE_ORDER[exIndex + 1] : "complete";
 
   const shown: Feedback = feedback?.stepId === step.id
     ? { status: feedback.status, content: <MathInlineText text={feedback.text} /> }
     : solved
-      ? { status: done[step.id], content: <MathInlineText text={step.solvedNote} /> }
+      ? { status: done[step.id], content: <SolvedNote step={step} answers={answers[step.id]} /> }
       : null;
   const wrong = feedback?.stepId === step.id ? feedback.wrong : undefined;
 
@@ -190,12 +159,13 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
   }, [view]);
 
   function open(next: SupremumView) {
-    if (next === view || !canOpenSupremumView(next, done)) return;
+    if (next === view || !canOpenSupremumView(next, done, finishedBefore)) return;
     if (next !== "intro") setStarted(true);
     if (isExampleView(next)) {
       setLastExample(next);
       if (next !== id) setN(1);
     }
+    setProofOpen(false);
     if (next === "complete") {
       setExploring(false);
       // Reaching the finish view is the activity's completion point (docs/plans/activity-progress.md).
@@ -216,8 +186,7 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
   function check() {
     const result = checkStep(step, answers[step.id]);
     if (result.status === "correct") {
-      setDone((current) => ({ ...current, [step.id]: "correct" }));
-      setFeedback(null);
+      finishStep("correct");
     } else if (result.status === "wrong") {
       setFeedback({
         stepId: step.id, status: "wrong", text: result.message,
@@ -229,8 +198,32 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
   }
   function reveal() {
     setAnswers((current) => ({ ...current, [step.id]: revealAnswers(step) }));
-    setDone((current) => ({ ...current, [step.id]: "revealed" }));
+    finishStep("revealed");
+  }
+  /** Records the current step; finishing an example's last open step opens its full proof. */
+  function finishStep(how: "correct" | "revealed") {
+    const nextDone = { ...done, [step.id]: how };
+    setDone(nextDone);
     setFeedback(null);
+    if (!isExampleComplete(id, done) && isExampleComplete(id, nextDone)) {
+      setFinishedBefore((current) => current.includes(id) ? current : [...current, id]);
+      setProofOpen(true);
+    }
+  }
+  function previous() {
+    if (stepIndex === 0) return;
+    setStepAt((current) => ({ ...current, [id]: stepIndex - 1 }));
+    setFeedback(null);
+  }
+  /** Clears this example's answers and returns to its first step; it stays finished if it was. */
+  function restart() {
+    const ids = new Set(steps.map((s) => s.id));
+    setDone((current) => Object.fromEntries(Object.entries(current).filter(([stepId]) => !ids.has(stepId))) as StepsDone);
+    setAnswers((current) => Object.fromEntries(Object.entries(current).filter(([stepId]) => !ids.has(stepId))));
+    setStepAt((current) => ({ ...current, [id]: 0 }));
+    setFeedback(null);
+    setProofOpen(false);
+    setN(1);
   }
   function next() {
     if (stepIndex < steps.length - 1) {
@@ -259,7 +252,7 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
         <ExampleChips current={exIndex} onPick={exploreExample} />
         <p>שנו את <MathText math="n" />, את נקודת הבדיקה ואת <MathText math="\varepsilon" />, ושנו את חלון התצוגה כדי לראות את הפסגה.</p>
       </TaskCard>
-      : <TaskCard key={id} step={`שלב ${stepIndex + 1} מתוך ${steps.length}`}
+      : <TaskCard key={`${id}-${stepIndex}`} step={`שלב ${stepIndex + 1} מתוך ${steps.length}`}
         title={<MathInlineText text={step.title} />} response={<>
           {!solved && <div className="convergence-actions">
             <button type="button" className="panel-action" onClick={check}>בדיקה</button>
@@ -267,15 +260,15 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
           </div>}
           <FeedbackBox feedback={shown} />
           {solved && <button type="button" className="panel-action" onClick={next}>{nextLabel}</button>}
+          {stepIndex > 0 && <button type="button" className="panel-action secondary guided-previous-step" onClick={previous}>לשלב הקודם</button>}
           <Hints key={step.id} hints={step.hints.map((hint, i) => <MathInlineText key={i} text={hint} />)} />
           {step.disclosure && <details className="convergence-proof" key={`${step.id}-disclosure`}>
             <summary>{step.disclosure.summary}</summary>
             <p><MathInlineText text={step.disclosure.body} /></p>
           </details>}
         </>}>
-        <FormulaCard key={id} id={id} />
         <p className="supremum-prompt"><MathInlineText text={step.prompt} /></p>
-        {step.parts.map((part) => <PartView key={part.id} part={part} answer={answers[step.id]?.[part.id]}
+        {step.parts.map((part) => <PartView key={part.id} part={part} tokens={TOKENS} answer={answers[step.id]?.[part.id]}
           wrong={wrong?.partId === part.id ? wrong : undefined} solved={solved} onChange={(nextAnswer) => editPart(part, nextAnswer)} />)}
       </TaskCard>;
 
@@ -295,8 +288,8 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
   return <div ref={root} className="convergence-lab supremum-activity">
     <header className="convergence-heading">
       <div className="convergence-heading-copy">
-        <h2 data-convergence-heading tabIndex={-1}>מבחן הסופרמום: חישוב וטיעון</h2>
-        <p className="convergence-muted">מחשבים את הסופרמום של <MathText math="|f_n-f|" /> ומנמקים כל שלב, ואז קובעים אם ההתכנסות במידה שווה.</p>
+        <h2 data-convergence-heading tabIndex={-1}>שימוש במבחן הסופרמום</h2>
+        <p className="convergence-muted">היכרות עם טכניקות נפוצות לחישוב הסופרמום של <MathText math="|f_n-f|" /> ונימוק נכון של השימוש במשפט.</p>
       </div>
       <div className="convergence-heading-actions">
         {view !== "intro" && <button type="button" className="panel-action secondary" onClick={() => open("intro")}>מטרת הפעילות</button>}
@@ -308,17 +301,27 @@ export function SupremumActivity({ onExit, onFinish, initialView = "intro" }: {
         copy={EXAMPLE_COPY} listClassName="supremum-progress-list" onOpen={openFromTrack} />}
     </div>
     <SupremumIntro hidden={view !== "intro"} returning={started} onStart={() => open(lastExample)} />
-    {guided && <section className="convergence-lesson-panel" aria-labelledby="supremum-example-title">
-      <header className="convergence-part-header">
-        <h3 className="convergence-part-title" id="supremum-example-title">
-          <MathInlineText text={`דוגמה ${exIndex + 1}: ${exampleCaption(id)}`} />
-        </h3>
+    {guided && <section className="convergence-lesson-panel" aria-labelledby="supremum-example-title supremum-example-formula">
+      <header className="convergence-part-header supremum-example-header">
+        {/* The example every step card below works on: its number, then its sequence and domain. */}
+        <div className="supremum-example-heading">
+          <h3 className="convergence-part-title" id="supremum-example-title">דוגמה {exIndex + 1}</h3>
+          <div key={id} className="supremum-example-formula" id="supremum-example-formula" dir="ltr">
+            <MathText block math={`${ex.fnLatex},\\quad x\\in ${ex.domainLatex}`} />
+          </div>
+          <div className="guided-example-actions">
+            {isExampleComplete(id, done) && <button type="button" className="panel-action secondary supremum-proof-open" onClick={() => setProofOpen(true)}>ההוכחה המלאה</button>}
+            {hasProgress && <button type="button" className="panel-action secondary" onClick={restart}>התחלת הדוגמה מחדש</button>}
+          </div>
+        </div>
         <div className="convergence-explanation-slot" data-example-explanation={id} aria-hidden={supremumExampleExplanations[id] == null ? true : undefined}>
           {supremumExampleExplanations[id]}
         </div>
       </header>
       {workspace}
     </section>}
+    {guided && <SupremumProofDialog id={id} position={exIndex + 1} open={proofOpen}
+      nextLabel={following === "complete" ? "לסיום הפעילות" : "לדוגמה הבאה"} onNext={() => open(following)} onClose={() => setProofOpen(false)} />}
     {view === "complete" && workspace}
     {view !== "intro" && <div className="convergence-sequence-footer">
       <StagePaging stages={EXAMPLE_STAGES} current={view} canOpen={canOpen} busy={false} copy={EXAMPLE_COPY} onOpen={openFromTrack} />

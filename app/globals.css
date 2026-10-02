@@ -323,6 +323,14 @@ code {
   font-size: var(--math-size-inline) !important;
 }
 
+/* Long inline formulas in the guided activities' prose (answer options, prompts, feedback, hints,
+   summaries) may wrap at KaTeX's own break points, after = and + at the top level. The default
+   inline-flex box is unbreakable and lets such a formula spill out of a narrow card. The island
+   stays LTR and isolated, so a wrapped formula still reads left to right on each line. */
+:is(.convergence-choice, .supremum-prompt, .supremum-part-lead, .convergence-feedback, .convergence-hints, .convergence-proof, .guided-summary, .supremum-proof-sections, .convergence-explanation-slot) .math-render[data-variant="inline"] {
+  display: inline;
+}
+
 .math-render[data-variant="compact"] .katex {
   font-size: var(--math-size-compact) !important;
 }
@@ -987,7 +995,8 @@ input[type="range"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .convergence-formula-card { animation: none; }
+  .convergence-formula-card,
+  .supremum-example-formula { animation: none; }
   .convergence-slider-epsilon { transition: none; }
 }
 
@@ -1262,6 +1271,21 @@ input[type="range"] {
   .convergence-progress-list.supremum-progress-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* The continuity activity's three examples. */
+.convergence-progress-list.continuity-progress-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* The limit-and-integral activity's examples (two, and an optional third). */
+.convergence-progress-list.integral-progress-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* The limit-and-derivative activity's three examples. */
+.convergence-progress-list.derivative-progress-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .convergence-progress-step {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -1366,6 +1390,448 @@ input[type="range"] {
   line-height: 1.4;
 }
 
+/* Summary practice: topic filter and redraw on one row, then a single card per exercise whose steps open
+   one below the other. */
+.practice-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.practice-toolbar .practice-topics {
+  flex: 1 1 520px;
+}
+
+.practice-toolbar .practice-levels {
+  flex: 0 1 auto;
+}
+
+.practice-toolbar .practice-redraw {
+  width: auto;
+  margin: 0;
+}
+
+.practice-exercise-card {
+  display: grid;
+  gap: 14px;
+}
+
+.practice-exercise-header {
+  display: grid;
+  gap: 8px;
+}
+
+.practice-exercise-header h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.2rem, 1.6vw, 1.4rem);
+  font-weight: 800;
+}
+
+.practice-exercise-header p {
+  margin: 0;
+}
+
+/* Card body: the steps in the main column and the visual aid in a narrow side column (left in RTL),
+   sticky so it stays in view while the student works down the steps. */
+.practice-exercise-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.practice-exercise-body.has-aid {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+}
+
+.practice-steps-column {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.practice-plot-panel {
+  position: sticky;
+  top: 12px;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.practice-plot-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.practice-plot-panel-header .panel-action {
+  width: auto;
+  min-height: 32px;
+  margin: 0;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+/* Compact sliders in the narrow column: one column, the doubling and reset buttons on their own rows. */
+.practice-plot-panel .convergence-slider-panel {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.practice-plot-panel .convergence-slider-rows {
+  grid-template-columns: auto 64px minmax(0, 1fr);
+  gap: 6px 8px;
+}
+
+.practice-plot-panel .convergence-slider-rows > .panel-action,
+.practice-plot-panel .convergence-slider-reset {
+  grid-column: 1 / -1;
+  width: auto;
+  min-height: 32px;
+  font-size: 0.85rem;
+}
+
+/* Narrow screens: the aid stacks above the steps, at a readable width, and does not stick. */
+@media (max-width: 980px) {
+  .practice-exercise-body.has-aid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .practice-plot-panel {
+    position: static;
+    order: -1;
+    width: 100%;
+    max-width: 480px;
+    justify-self: center;
+  }
+}
+
+.practice-steps {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-step {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--blue);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.practice-step.is-solved {
+  border-inline-start-color: var(--green);
+}
+
+.practice-step h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.practice-step h4:focus { outline: none; }
+.practice-step h4:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+/* "שלב k" badge of a summary-practice step. Its own class: `.practice-step-number` belongs to the Euler
+   practice and is a fixed 2rem circle that cannot hold the word «שלב». */
+.summary-step-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 6px;
+  padding: 1px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.6;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.practice-finished {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-weight: 800;
+}
+
+.practice-finished p { margin: 0; }
+.practice-finished .panel-action { width: auto; margin: 0; }
+
+/* Summary practice: the generic graph of f_n on an exercise card (domain fade, limit, band, marker, clipped peak). */
+.practice-plot {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.practice-plot .convergence-plot-caption,
+.practice-plot .convergence-legend {
+  direction: rtl;
+}
+
+.practice-svg {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.practice-plot-outside {
+  fill: var(--muted);
+  opacity: 0.12;
+  stroke: none;
+}
+
+.practice-plot-peak-marker {
+  fill: var(--rust);
+  stroke: none;
+}
+
+.practice-plot-peak-label {
+  fill: var(--ink);
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.convergence-key[data-kind="outside"]::before {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  background: var(--muted);
+  opacity: 0.4;
+}
+
+/* Example header actions of the guided-example shell: the summary pop-up and restarting the example. */
+.supremum-example-heading .guided-example-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.guided-example-actions .panel-action,
+.guided-previous-step {
+  width: auto;
+  margin: 0;
+}
+
+/* The split point a of the domain (limit-and-integral, optional example). */
+.guided-split-slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.guided-split-slider input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* "ההוכחה המלאה": reopens a finished example's full-proof pop-up from the example header. */
+.supremum-example-heading .supremum-proof-open {
+  width: auto;
+  margin: 0;
+  margin-inline-start: auto;
+}
+
+/* Full-proof pop-up at the end of each supremum example: a native modal <dialog>, styled like .sample-modal. */
+.supremum-proof-dialog {
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid rgba(37, 43, 51, 0.18);
+  border-radius: 10px;
+  background: var(--raised);
+  box-shadow: 0 28px 100px rgba(37, 43, 51, 0.26);
+  color: var(--ink);
+}
+
+.supremum-proof-dialog::backdrop {
+  background: rgba(37, 43, 51, 0.22);
+  backdrop-filter: blur(4px);
+}
+
+html:has(.supremum-proof-dialog[open]) {
+  overflow: hidden;
+}
+
+.supremum-proof-panel {
+  display: grid;
+  gap: 14px;
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.supremum-proof-panel .sample-modal-header {
+  margin-bottom: 0;
+}
+
+.supremum-proof-lead {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.supremum-proof-formula {
+  justify-self: center;
+  max-width: 100%;
+  padding: 2px 18px;
+  border: 1px solid rgba(35, 87, 137, 0.3);
+  border-radius: 8px;
+  background: var(--blue-soft);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.supremum-proof-formula > .math-display {
+  margin: 0;
+}
+
+.supremum-proof-sections {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: proof-section;
+}
+
+.supremum-proof-sections > li {
+  counter-increment: proof-section;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--blue);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.supremum-proof-sections h3 {
+  margin: 0 0 4px;
+  color: var(--blue);
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.supremum-proof-sections h3::before {
+  content: counter(proof-section) ". ";
+}
+
+.supremum-proof-sections p {
+  margin: 0;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.supremum-proof-sections .math-display {
+  margin: 6px 0 0;
+}
+
+/* A guided example's prose summary (continuity activity) inside the same pop-up. */
+.guided-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.guided-summary p {
+  margin: 0;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.supremum-proof-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.supremum-proof-actions .panel-action {
+  width: auto;
+  margin: 0;
+}
+
+/* A solved step's minimal proof and the notes on ticked reasons that were not needed. */
+.supremum-minimal-proof {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--green);
+  border-radius: 8px;
+  background: var(--raised);
+}
+
+.supremum-minimal-proof p,
+.supremum-unneeded {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.supremum-unneeded {
+  margin-top: 8px;
+}
+
+/* Supremum example header: the example's number and its sequence, the subject of every step card below. */
+.supremum-example-header {
+  border-inline-start: 5px solid var(--blue);
+}
+
+.supremum-example-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.supremum-example-heading .convergence-part-title {
+  color: var(--blue);
+  font-size: clamp(1.2rem, 1.6vw, 1.4rem);
+}
+
+.supremum-example-formula {
+  max-width: 100%;
+  padding: 2px 18px;
+  border: 1px solid rgba(35, 87, 137, 0.3);
+  border-radius: 8px;
+  background: var(--blue-soft);
+  direction: ltr;
+  unicode-bidi: isolate;
+  animation: convergence-formula-in 520ms ease-out;
+}
+
+.supremum-example-formula > .math-display {
+  margin: 0;
+}
+
 .convergence-part-title:focus { outline: none; }
 .convergence-part-title:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 
@@ -1449,7 +1915,9 @@ input[type="range"] {
   line-height: 1.25;
 }
 
-.supremum-intro .convergence-definition ol {
+.supremum-intro .convergence-definition ol,
+.integral-intro .convergence-definition ol,
+.derivative-intro .convergence-definition ol {
   display: grid;
   gap: 6px;
   margin: 0;
@@ -2095,6 +2563,196 @@ line.convergence-band {
 
 .convergence-key[data-kind="mn-in"]::before {
   background: var(--green);
+}
+
+/* Continuity of the limit function: graph of f_n, f, the epsilon-band and the jump markers. */
+.continuity-plot {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.continuity-plot .convergence-plot-caption,
+.continuity-plot .convergence-legend {
+  direction: rtl;
+}
+
+.continuity-svg {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.continuity-jump-marker {
+  stroke: var(--rust);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.continuity-peak-marker {
+  fill: var(--rust);
+  stroke: none;
+}
+
+.continuity-peak-label {
+  fill: var(--ink);
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.convergence-key[data-kind="closed-dot"]::before,
+.convergence-key[data-kind="open-dot"]::before,
+.convergence-key[data-kind="peak"]::before {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border: 2px solid var(--blue);
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.convergence-key[data-kind="open-dot"]::before {
+  background: var(--paper);
+}
+
+.convergence-key[data-kind="peak"]::before {
+  border-color: var(--rust);
+  border-radius: 0;
+  background: var(--rust);
+}
+
+.convergence-key[data-kind="jump"]::before {
+  border-color: var(--rust);
+  border-top-style: dashed;
+}
+
+/* Limit and integral: graph of f_n with the shaded area, and the plot of I_n and M_n against n. */
+.integral-plot,
+.integral-sequence-plot {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.integral-plot .convergence-plot-caption,
+.integral-plot .convergence-legend,
+.integral-sequence-plot .convergence-plot-caption,
+.integral-sequence-plot .convergence-legend {
+  direction: rtl;
+}
+
+.integral-svg,
+.integral-sequence-svg {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.integral-area {
+  fill: rgba(35, 87, 137, 0.16);
+  stroke: none;
+}
+
+/* Split at x = a: the part [0,a] in rust, the part [a,1] in blue. */
+.integral-area.integral-area-left {
+  fill: rgba(184, 87, 53, 0.22);
+}
+
+.integral-area.integral-area-right {
+  fill: rgba(35, 87, 137, 0.16);
+}
+
+.integral-split-line {
+  stroke: var(--rust);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.integral-split-label,
+.integral-reference-label {
+  fill: var(--ink);
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.integral-dot {
+  fill: var(--blue);
+  stroke: none;
+}
+
+.integral-dot.is-current {
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.integral-sup-dot {
+  fill: var(--rust);
+  stroke: none;
+  opacity: 0.85;
+}
+
+.integral-sup-dot.is-current {
+  stroke: var(--paper);
+  stroke-width: 2;
+  opacity: 1;
+}
+
+.convergence-key[data-kind="area"]::before,
+.convergence-key[data-kind="area-left"]::before,
+.convergence-key[data-kind="area-right"]::before {
+  height: 9px;
+  border: 1px solid var(--blue);
+  background: rgba(35, 87, 137, 0.16);
+}
+
+.convergence-key[data-kind="area-left"]::before {
+  border-color: var(--rust);
+  background: rgba(184, 87, 53, 0.22);
+}
+
+.convergence-key[data-kind="integral-dot"]::before,
+.convergence-key[data-kind="sup-dot"]::before {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.convergence-key[data-kind="sup-dot"]::before {
+  background: var(--rust);
+}
+
+/* Limit and derivative: graph of f_n and, below it, the graph of f_n' with its limit g. */
+.derivative-plot {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.derivative-plot .convergence-plot-caption,
+.derivative-plot .convergence-legend {
+  direction: rtl;
+}
+
+.derivative-svg {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* The second panel sits under the first with the same spacing as stacked figures. */
+.derivative-prime-plot {
+  margin-top: 14px;
+}
+
+/* A value of f_n above the window (D3): a small rust arrow at the top edge with the value. */
+.derivative-peak-marker {
+  fill: var(--rust);
+  stroke: none;
+}
+
+.derivative-peak-label {
+  fill: var(--ink);
+  font-family: KaTeX_Main, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .supremum-view-controls {
@@ -6725,7 +7383,10 @@ nav.chapter-pager {
 
 @media (max-width: 640px) {
   .convergence-progress-list,
-  .convergence-progress-list.supremum-progress-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .convergence-progress-list.supremum-progress-list,
+  .convergence-progress-list.continuity-progress-list,
+  .convergence-progress-list.integral-progress-list,
+  .convergence-progress-list.derivative-progress-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .convergence-sequence-nav { padding: 10px; }
 

@@ -6,15 +6,21 @@ import { OdeModuleBreadcrumbs } from "../ode/OdeModuleBreadcrumbs";
 import { OdeNotesSections } from "../ode/OdeNotesSections";
 import { ConvergenceLab } from "./components/ConvergenceLab";
 import { SupremumActivity } from "./components/SupremumActivity";
+import { ContinuityActivity } from "./components/ContinuityActivity";
+import { IntegralActivity } from "./components/IntegralActivity";
+import { DerivativeActivity } from "./components/DerivativeActivity";
+import { PracticeActivity } from "./components/PracticeActivity";
 import { FunctionSeriesSection } from "./components/FunctionSeriesSection";
 import { PowerSeriesSection } from "./components/PowerSeriesSection";
 import { TaylorSeriesSection } from "./components/TaylorSeriesSection";
 import { reportActivityCompletion } from "../_progress/client";
 import { completionDateLabel } from "../_progress/model";
 
-type Activity = "lab" | "supremum";
+type Activity = "lab" | "supremum" | "continuity" | "integral" | "derivative" | "practice";
+/** Activities whose completion is recorded; the summary practice is not one of them. */
+type TrackedActivity = Exclude<Activity, "practice">;
 /** Registry ids in `app/ode/course.ts`; the stored completion marks use these. */
-const ACTIVITY_IDS: Record<Activity, string> = { lab: "convergence-lab", supremum: "supremum-test" };
+const ACTIVITY_IDS: Record<TrackedActivity, string> = { lab: "convergence-lab", supremum: "supremum-test", continuity: "limit-continuity", integral: "limit-integral", derivative: "limit-derivative" };
 export type ActivityCompletionMark = { activityId: string; lastCompletedAt: number };
 type Subject = "function-sequences" | "function-series" | "power-series" | "taylor-series";
 const SUBJECTS: Record<Subject, { title: string; intro: () => ReactNode }> = {
@@ -29,20 +35,20 @@ export function SubjectModule({ subject, completions = [] }: { subject: Subject;
   const [openActivity, setOpenActivity] = useState<Activity | null>(null);
   const [started, setStarted] = useState<Activity[]>([]);
   const [lastOpened, setLastOpened] = useState<Activity | null>(null);
-  const [finishedAt, setFinishedAt] = useState<Partial<Record<Activity, number>>>(() => {
-    const marks: Partial<Record<Activity, number>> = {};
-    for (const activity of Object.keys(ACTIVITY_IDS) as Activity[]) {
+  const [finishedAt, setFinishedAt] = useState<Partial<Record<TrackedActivity, number>>>(() => {
+    const marks: Partial<Record<TrackedActivity, number>> = {};
+    for (const activity of Object.keys(ACTIVITY_IDS) as TrackedActivity[]) {
       const mark = completions.find((entry) => entry.activityId === ACTIVITY_IDS[activity]);
       if (mark) marks[activity] = mark.lastCompletedAt;
     }
     return marks;
   });
-  const finish = (activity: Activity) => {
+  const finish = (activity: TrackedActivity) => {
     setFinishedAt((current) => ({ ...current, [activity]: Date.now() }));
     reportActivityCompletion("ode", subject, ACTIVITY_IDS[activity]);
   };
-  const hosts = useRef<Record<Activity, HTMLDivElement | null>>({ lab: null, supremum: null });
-  const entryButtons = useRef<Record<Activity, HTMLButtonElement | null>>({ lab: null, supremum: null });
+  const hosts = useRef<Record<Activity, HTMLDivElement | null>>({ lab: null, supremum: null, continuity: null, integral: null, derivative: null, practice: null });
+  const entryButtons = useRef<Record<Activity, HTMLButtonElement | null>>({ lab: null, supremum: null, continuity: null, integral: null, derivative: null, practice: null });
   const open = (activity: Activity) => {
     setStarted((current) => current.includes(activity) ? current : [...current, activity]);
     setLastOpened(activity);
@@ -63,6 +69,18 @@ export function SubjectModule({ subject, completions = [] }: { subject: Subject;
     </div>}
     {started.includes("supremum") && <div ref={(node) => { hosts.current.supremum = node; }} className="convergence-activity-host" hidden={openActivity !== "supremum"}>
       <SupremumActivity onExit={() => setOpenActivity(null)} onFinish={() => finish("supremum")} />
+    </div>}
+    {started.includes("continuity") && <div ref={(node) => { hosts.current.continuity = node; }} className="convergence-activity-host" hidden={openActivity !== "continuity"}>
+      <ContinuityActivity onExit={() => setOpenActivity(null)} onFinish={() => finish("continuity")} />
+    </div>}
+    {started.includes("integral") && <div ref={(node) => { hosts.current.integral = node; }} className="convergence-activity-host" hidden={openActivity !== "integral"}>
+      <IntegralActivity onExit={() => setOpenActivity(null)} onFinish={() => finish("integral")} />
+    </div>}
+    {started.includes("derivative") && <div ref={(node) => { hosts.current.derivative = node; }} className="convergence-activity-host" hidden={openActivity !== "derivative"}>
+      <DerivativeActivity onExit={() => setOpenActivity(null)} onFinish={() => finish("derivative")} />
+    </div>}
+    {started.includes("practice") && <div ref={(node) => { hosts.current.practice = node; }} className="convergence-activity-host" hidden={openActivity !== "practice"}>
+      <PracticeActivity onExit={() => setOpenActivity(null)} />
     </div>}
     <section className="module-intro-page convergence-menu" hidden={openActivity !== null} aria-label="פעילויות בסדרות פונקציות">
       <article className="module-intro-card module-intro-content">
@@ -86,15 +104,29 @@ export function SubjectModule({ subject, completions = [] }: { subject: Subject;
           <CompletionMark time={finishedAt.supremum} />
           <button ref={(node) => { entryButtons.current.supremum = node; }} type="button" className="panel-action" aria-describedby="sequences-activity-supremum" onClick={() => open("supremum")}>כניסה לפעילות</button>
         </article>
-        {([
-          { title: "רציפות פונקציית הגבול", detail: "מתי רציפות של איברי הסדרה וההתכנסות במידה שווה מבטיחות שרציפות נשמרת בגבול?" },
-          { title: "גבול ואינטגרל", detail: "באילו תנאים אפשר להחליף בין גבול הסדרה לבין אינטגרציה על קטע?" },
-          { title: "גבול ונגזרת", detail: "אילו תנאים על הסדרה והנגזרות מאפשרים לגזור את פונקציית הגבול?" },
-        ]).map((activity) => <article className="module-intro-card" key={activity.title}>
-          <p className="course-kicker">פעילות מתוכננת</p><h3>{activity.title}</h3>
-          <p>{activity.detail}</p>
-          <span className="embedded-placeholder"><span>פעילות אינטראקטיבית</span><strong>בבנייה</strong></span>
-        </article>)}
+        <article className="module-intro-card">
+          <h3 id="sequences-activity-continuity">3. רציפות פונקציית הגבול</h3>
+          <p>מתי רציפות של איברי הסדרה וההתכנסות במידה שווה מבטיחות שרציפות נשמרת בגבול? שלוש דוגמאות מודרכות: שתיים שבהן גבול לא רציף מראה שההתכנסות אינה במידה שווה, ואחת שמראה שהכיוון ההפוך של המשפט אינו נכון.</p>
+          <CompletionMark time={finishedAt.continuity} />
+          <button ref={(node) => { entryButtons.current.continuity = node; }} type="button" className="panel-action" aria-describedby="sequences-activity-continuity" onClick={() => open("continuity")}>כניסה לפעילות</button>
+        </article>
+        <article className="module-intro-card">
+          <h3 id="sequences-activity-integral">4. גבול ואינטגרל</h3>
+          <p>באילו תנאים אפשר להחליף בין גבול הסדרה לבין אינטגרציה על קטע? דוגמאות מודרכות עם המחשה של השטח שמתחת לגרף: חישוב גבול של אינטגרלים בלי לחשב אותם, ודוגמה שבה ההחלפה מותרת אף שההתכנסות אינה במידה שווה.</p>
+          <CompletionMark time={finishedAt.integral} />
+          <button ref={(node) => { entryButtons.current.integral = node; }} type="button" className="panel-action" aria-describedby="sequences-activity-integral" onClick={() => open("integral")}>כניסה לפעילות</button>
+        </article>
+        <article className="module-intro-card">
+          <h3 id="sequences-activity-derivative">5. גבול ונגזרת</h3>
+          <p>אילו תנאים על הסדרה ועל סדרת הנגזרות מאפשרים לגזור את פונקציית הגבול איבר־איבר? דוגמה שבה כל התנאים מתקיימים, ושתי דוגמאות שבהן תנאי אחר של משפט הגזירה נכשל.</p>
+          <CompletionMark time={finishedAt.derivative} />
+          <button ref={(node) => { entryButtons.current.derivative = node; }} type="button" className="panel-action" aria-describedby="sequences-activity-derivative" onClick={() => open("derivative")}>כניסה לפעילות</button>
+        </article>
+        <article className="module-intro-card practice-menu-card">
+          <h3 id="sequences-activity-practice">6. תרגול מסכם</h3>
+          <p>תרגילים מוגרלים בסגנון הפעילויות הקודמות, מכל הנושאים או מנושא אחד לבחירתכם. אפשר להגריל תרגיל חדש בכל רגע; התרגול אינו נשמר ואינו נרשם כפעילות שהושלמה.</p>
+          <button ref={(node) => { entryButtons.current.practice = node; }} type="button" className="panel-action" aria-describedby="sequences-activity-practice" onClick={() => open("practice")}>כניסה לתרגול</button>
+        </article>
       </div>
     </section></>}
   </main>;

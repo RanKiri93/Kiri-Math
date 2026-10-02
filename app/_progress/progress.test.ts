@@ -103,12 +103,12 @@ describe("progress rendering", () => {
   it("shows a progress counter only on chapter modules that have activities", () => {
     const html = renderToStaticMarkup(createElement(ChapterPanel, { course: odeCourse, chapter: 1, completed: { "function-sequences": 1 } }));
     expect(html.match(/data-module-progress/g)).toHaveLength(1);
-    expect(html).toContain("הושלמו 1 מתוך 2 פעילויות");
-    const done = renderToStaticMarkup(createElement(ChapterPanel, { course: odeCourse, chapter: 1, completed: { "function-sequences": 2 } }));
+    expect(html).toContain("הושלמו 1 מתוך 5 פעילויות");
+    const done = renderToStaticMarkup(createElement(ChapterPanel, { course: odeCourse, chapter: 1, completed: { "function-sequences": 5 } }));
     expect(done).toContain("כל הפעילויות הושלמו");
     expect(done).toContain('class="course-module-progress complete"');
     const none = renderToStaticMarkup(createElement(ChapterPanel, { course: odeCourse, chapter: 1 }));
-    expect(none).toContain("הושלמו 0 מתוך 2 פעילויות");
+    expect(none).toContain("הושלמו 0 מתוך 5 פעילויות");
   });
 
   it("marks finished activities on the function-sequences menu, keeping their entry buttons", () => {
@@ -122,12 +122,12 @@ describe("progress rendering", () => {
     expect(html.match(/data-activity-complete/g)).toHaveLength(1);
     expect(html.indexOf("data-activity-complete")).toBeGreaterThan(html.indexOf("2. שימוש במבחן הסופרמום"));
     expect(html).toContain('<bdi dir="ltr">30.9.2026</bdi>');
-    expect(html.match(/כניסה לפעילות/g)).toHaveLength(2);
+    expect(html.match(/כניסה לפעילות/g)).toHaveLength(5);
     const activities = odeCourse.modules.find((entry) => entry.id === "function-sequences")?.activities ?? [];
     const both = renderToStaticMarkup(createElement(SubjectModule, {
       subject: "function-sequences",
       completions: activities.map((activity) => ({ activityId: activity.id, lastCompletedAt: time })),
     }));
-    expect(both.match(/data-activity-complete/g)).toHaveLength(2);
+    expect(both.match(/data-activity-complete/g)).toHaveLength(5);
   });
 });

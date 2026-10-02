@@ -12,6 +12,7 @@ import {
   graphFlagsFor,
   revealAnswers,
   tokenLabel,
+  unneededChoices,
   type SlotsPart,
   type Step,
   type TablePart,
@@ -197,6 +198,26 @@ describe("checklists and choices", () => {
         const res = checkChecklist(spec, others);
         expect(res).toMatchObject({ status: "wrong", itemId: item.id, message: item.diagnosis });
       }
+    }
+  });
+
+  it("existence steps ask to avoid unneeded reasons and explain each ticked one after the minimal proof", () => {
+    for (const id of ["E1-3", "E2-2"]) {
+      const step = allSteps.find((s) => s.id === id)!;
+      const part = step.parts[0];
+      expect(part.kind).toBe("checklist");
+      if (part.kind !== "checklist") continue;
+      expect(part.lead).toContain("נסו להימנע מנימוקים לא נחוצים.");
+      expect(step.minimalProof).toContain("משפט ויירשטראס");
+      // A reveal ticks only the required facts, so nothing is flagged as unneeded.
+      expect(unneededChoices(step, revealAnswers(step))).toEqual([]);
+      const ticked = { [part.id]: [...part.reveal, "zero-left"] };
+      expect(checkStep(step, ticked)).toEqual({ status: "correct" });
+      expect(unneededChoices(step, ticked).map((item) => item.id)).toEqual(["zero-left"]);
+    }
+    // Every optional reason carries the explanation shown when it was ticked.
+    for (const part of checklists) for (const item of part.checklist.items.filter((i) => i.optional)) {
+      expect(item.unneeded, item.id).toBeTruthy();
     }
   });
 

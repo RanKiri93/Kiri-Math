@@ -24,6 +24,9 @@ export const odeCourse: CourseDefinition = {
       activities: [
         { id: "convergence-lab", title: "התכנסות נקודתית ובמידה שווה" },
         { id: "supremum-test", title: "שימוש במבחן הסופרמום" },
+        { id: "limit-continuity", title: "רציפות פונקציית הגבול" },
+        { id: "limit-integral", title: "גבול ואינטגרל" },
+        { id: "limit-derivative", title: "גבול ונגזרת" },
       ],
     },
     {

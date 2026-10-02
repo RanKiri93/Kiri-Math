@@ -1,6 +1,6 @@
 /**
- * Step data and checkers of the supremum-test activity (docs/plans/supremum-test-activity.md).
- * Pure TypeScript, no React. The activity component is a thin renderer over SUP_STEPS:
+ * Step data of the supremum-test activity (docs/plans/supremum-test-activity.md); the checkers are the
+ * shared engine in guidedSteps.ts. Pure TypeScript, no React. The activity renders SUP_STEPS:
  *
  *   for each step of SUP_STEPS[exampleId]:
  *     render step.title, step.prompt (Hebrew with inline $...$ math) and step.parts;
@@ -13,20 +13,45 @@
  */
 import type { SupExampleId } from './supremumExamples';
 import type {
-  CandidateFilling,
-  CandidateRow,
-  CandidateTableSpec,
-  CheckResult,
-  ChecklistSpec,
-  ChoiceSpec,
-  SlotFilling,
-  SlotSpec,
-  SlotTemplateSpec,
-  TemplateSegment,
   Token,
   TokenId,
   TokenLabel,
 } from './supremumTypes';
+import {
+  L,
+  S,
+  checklistPart,
+  choicePart,
+  row,
+  slot,
+  slotsPart,
+  tablePart,
+  template,
+  type ChecklistPart,
+  type ChoicePart,
+  type GuidedStep,
+} from './guidedSteps';
+
+// The generic step engine lives in guidedSteps.ts; re-exported for the activity and its tests.
+export {
+  checkCandidateTable,
+  checkChecklist,
+  checkChoice,
+  checkPart,
+  checkSlots,
+  checkStep,
+  revealAnswers,
+  unneededChoices,
+  type ChecklistPart,
+  type ChoicePart,
+  type Disclosure,
+  type PartAnswer,
+  type SlotsPart,
+  type StepAnswers,
+  type StepCheckResult,
+  type StepPart,
+  type TablePart,
+} from './guidedSteps';
 
 const H = String.raw;
 
@@ -125,115 +150,12 @@ export const BASE_GRAPH: GraphFlags = {
   fadedOutsideDomain: false,
 };
 
-export type Disclosure = { summary: string; body: string };
-
-type PartBase = {
-  id: string;
-  /** Optional Hebrew line above the part (inline $...$ math allowed). */
-  lead?: string;
-};
-
-export type SlotsPart = PartBase & { kind: 'slots'; template: SlotTemplateSpec; reveal: SlotFilling };
-export type TablePart = PartBase & {
-  kind: 'table';
-  table: CandidateTableSpec;
-  /** Row id -> Hebrew kind caption ("קצה", "נקודה חשודה לקיצון", "גבול באינסוף"). */
-  captions: Record<string, string>;
-  reveal: CandidateFilling;
-};
-export type ChecklistPart = PartBase & { kind: 'checklist'; checklist: ChecklistSpec; reveal: string[] };
-export type ChoicePart = PartBase & { kind: 'choice'; choice: ChoiceSpec; reveal: string };
-export type StepPart = SlotsPart | TablePart | ChecklistPart | ChoicePart;
-
-/** A student's input for one part; which shape depends on the part's kind. */
-export type PartAnswer = SlotFilling | CandidateFilling | string[] | string | undefined;
-export type StepAnswers = Partial<Record<string, PartAnswer>>;
-export type StepCheckResult = CheckResult & { partId?: string };
-
-export type Step = {
-  /** e.g. "E1-4b". */
-  id: string;
-  exampleId: SupExampleId;
-  title: string;
-  /** Hebrew, inline math as $...$. */
-  prompt: string;
-  parts: StepPart[];
-  /** Shown one at a time, in order. */
-  hints: string[];
-  disclosure?: Disclosure;
-  /** Hebrew feedback shown when the step is solved (or revealed). */
-  solvedNote: string;
-  /** Graph state once the step is solved. */
-  graph: GraphFlags;
-};
+/** A step of the supremum activity: the shared guided step, keyed by example, with its graph state. */
+export type Step = GuidedStep<SupExampleId, GraphFlags>;
 
 // ---------------------------------------------------------------------------------------------
 // Builders
 // ---------------------------------------------------------------------------------------------
-
-const L = (latex: string): TemplateSegment => ({ latex });
-const S = (slotId: string): TemplateSegment => ({ slot: slotId });
-
-function slot(id: string, chips: TokenId[], accepted: TokenId | TokenId[], diagnoses?: Partial<Record<TokenId, string>>): SlotSpec {
-  return { id, chips, accepted: Array.isArray(accepted) ? accepted : [accepted], ...(diagnoses ? { diagnoses } : {}) };
-}
-
-function template(id: string, segments: TemplateSegment[], slots: SlotSpec[], unordered?: string[][]): SlotTemplateSpec {
-  return { id, segments, slots, ...(unordered ? { unordered } : {}) };
-}
-
-function revealSlots(t: SlotTemplateSpec): SlotFilling {
-  return Object.fromEntries(t.slots.map((s) => [s.id, s.accepted[0]]));
-}
-
-function slotsPart(t: SlotTemplateSpec, lead?: string): SlotsPart {
-  return { kind: 'slots', id: t.id, template: t, reveal: revealSlots(t), ...(lead ? { lead } : {}) };
-}
-
-/** A one-slot row of a candidate table: `lead` [slot]. */
-function row(
-  tableId: string,
-  id: string,
-  lead: string,
-  chips: TokenId[],
-  accepted: TokenId,
-  diagnoses: Partial<Record<TokenId, string>>,
-  isMaximum: boolean,
-): CandidateRow {
-  return {
-    id,
-    isMaximum,
-    template: template(`${tableId}-${id}`, [L(lead), S('v')], [slot('v', chips, accepted, diagnoses)]),
-  };
-}
-
-function tablePart(id: string, rows: CandidateRow[], captions: Record<string, string>, wrongMaximumMessage: string, lead?: string): TablePart {
-  const filling: CandidateFilling = {
-    rows: Object.fromEntries(rows.map((r) => [r.id, revealSlots(r.template)])),
-    maximumRowId: rows.find((r) => r.isMaximum)?.id,
-  };
-  return { kind: 'table', id, table: { id, rows, wrongMaximumMessage }, captions, reveal: filling, ...(lead ? { lead } : {}) };
-}
-
-function checklistPart(id: string, items: ChecklistSpec['items'], lead?: string): ChecklistPart {
-  return {
-    kind: 'checklist',
-    id,
-    checklist: { id, items },
-    reveal: items.filter((i) => i.required).map((i) => i.id),
-    ...(lead ? { lead } : {}),
-  };
-}
-
-function choicePart(id: string, prompt: string, options: ChoiceSpec['options'], lead?: string): ChoicePart {
-  return {
-    kind: 'choice',
-    id,
-    choice: { id, prompt, options },
-    reveal: options.find((o) => o.correct)!.id,
-    ...(lead ? { lead } : {}),
-  };
-}
 
 const graph = (flags: Partial<GraphFlags>): GraphFlags => ({ ...BASE_GRAPH, ...flags });
 
@@ -242,7 +164,6 @@ const graph = (flags: Partial<GraphFlags>): GraphFlags => ({ ...BASE_GRAPH, ...f
 // ---------------------------------------------------------------------------------------------
 
 const TABLE_WRONG_MAX = 'המקסימום הוא המועמד שערכו הגדול ביותר. השוו את הערכים שבטבלה.';
-const SLOT_GENERIC = 'המשבצת המסומנת אינה נכונה.';
 
 const CAPTIONS = {
   'end-left': 'קצה התחום',
@@ -323,6 +244,7 @@ function existenceChecklist(id: string): ChecklistPart {
       required: false,
       optional: true,
       label: H`$f_n(0)=0$`,
+      unneeded: 'זה לא נחוץ על מנת להסיק כי לפונקציה יש מקסימום, אם כי זה טוב לדעת שהוא לא מתקבל בנקודה זו.',
     },
     {
       id: 'limit-inf',
@@ -354,8 +276,11 @@ function existenceChecklist(id: string): ChecklistPart {
       label: H`$f_n$ חסומה מלמעלה, ולכן היא מקבלת ערך מקסימלי.`,
       diagnosis: H`חסימות מבטיחה סופרמום ולא מקסימום. למשל $1-e^{-x}$ חסומה ב־$[0,\infty)$ ואינה מקבלת את הסופרמום.`,
     },
-  ], 'סמנו את כל העובדות הדרושות כדי להסיק שלפונקציה יש מקסימום.');
+  ], 'סמנו את כל העובדות הדרושות כדי להסיק שלפונקציה יש מקסימום. נסו להימנע מנימוקים לא נחוצים.');
 }
+
+/** The minimal existence proof on [0,∞) for E1 and E2: the ticked required facts, in order. */
+export const EXISTENCE_PROOF = H`$\lim_{x\to\infty}f_n(x)=0$ ו־$f_n(x)>0$ לכל $x>0$, ולכן מספיק להתבונן בקטע $[0,R]$ סופי. $f_n$ רציפה ב־$[0,\infty)$ ולכן גם בכל קטע $[0,R]$. בקטע זה מתקיימים תנאי משפט ויירשטראס, ולכן היא מקבלת בקטע זה ערך מקסימלי, שהוא גם המקסימום שלה בכל $[0,\infty)$.`;
 
 // ---------------------------------------------------------------------------------------------
 // E1: f_n(x) = n x e^{-nx} on [0, infinity)
@@ -439,7 +364,8 @@ const E1_STEPS: Step[] = [
       summary: 'הוכחה קצרה שהמקסימום קיים',
       body: H`הפונקציה $f_n$ חיובית, למשל $f_n(\frac1n)=\frac1e>0$. מכיוון ש־$f_n(x)\to0$ כאשר $x\to\infty$, קיים $R>\frac1n$ כך ש־$f_n(x)<\frac1e$ לכל $x>R$. על הקטע הסגור והחסום $[0,R]$ הפונקציה הרציפה $f_n$ מקבלת מקסימום לפי ויירשטראס, וערכו לפחות $f_n(\frac1n)=\frac1e$, כי $\frac1n\in[0,R]$. לכן הוא גם המקסימום על כל $[0,\infty)$.`,
     },
-    solvedNote: H`המקסימום קיים, ולכן אפשר לחפש אותו. המועמדים הם: הקצה $x=0$, נקודות פנימיות שבהן $f_n$ גזירה ו־$f_n'=0$, והגבול באינסוף. גם $f_n(0)=0$ נכון ושימושי לטבלת המועמדים, אבל אינו נדרש כדי להוכיח שהמקסימום קיים.`,
+    solvedNote: H`המקסימום קיים, ולכן אפשר לחפש אותו. המועמדים הם: הקצה $x=0$, נקודות פנימיות שבהן $f_n$ גזירה ו־$f_n'=0$, והגבול באינסוף.`,
+    minimalProof: EXISTENCE_PROOF,
     graph: E1_G3,
   },
   {
@@ -717,7 +643,8 @@ const E2_STEPS: Step[] = [
     prompt: H`שוב תחום לא חסום, ולכן שוב צריך להצדיק שהמקסימום קיים. נמקו כמו ב־$nxe^{-nx}$.`,
     parts: [existenceChecklist('E2-2-exists')],
     hints: [H`הערכים בקצה 0 ובאינסוף הם 0, ו־$f_n>0$ בכל נקודה חיובית.`],
-    solvedNote: H`הנימוקים זהים לדוגמה הקודמת, ולכן המקסימום קיים. $f_n(0)=0$ נכון, אך אינו נדרש להוכחת הקיום.`,
+    solvedNote: H`הנימוקים זהים לדוגמה הראשונה, ולכן המקסימום קיים.`,
+    minimalProof: EXISTENCE_PROOF,
     graph: E2_G2,
   },
   {
@@ -925,7 +852,7 @@ const E3_STEPS: Step[] = [
     hints: [H`כאן הקטע חסום. מה זה משנה, בהשוואה ל־$[0,\infty)$?`],
     disclosure: {
       summary: 'ההבדל מהדוגמאות הקודמות',
-      body: H`ב־$[0,\infty)$ הקטע אינו חסום, ולכן היה צריך הוכחה נפרדת שהמקסימום קיים. כאן משפט ויירשטראס חל ישירות.`,
+      body: H`ב־$[0,\infty)$ התחום אינו חסום, ולכן היה צריך הוכחה נפרדת שהמקסימום קיים. כאן משפט ויירשטראס חל ישירות.`,
     },
     solvedNote: H`המקסימום קיים. כדי למצוא אותו נבדוק את כל המועמדים: שני הקצוות, והנקודות הפנימיות שבהן $f_n'=0$.`,
     graph: E3_G3,
@@ -1161,112 +1088,4 @@ export function graphFlagsFor(steps: Step[], index: number, solved: boolean): Gr
   if (solved) return steps[index].graph;
   if (index > 0) return steps[index - 1].graph;
   return { ...BASE_GRAPH, fadedOutsideDomain: steps[0].graph.fadedOutsideDomain };
-}
-
-// ---------------------------------------------------------------------------------------------
-// Checkers
-// ---------------------------------------------------------------------------------------------
-
-const MSG_FILL_ALL = 'השלימו את כל המשבצות.';
-
-export function checkSlots(t: SlotTemplateSpec, filling: SlotFilling | undefined): CheckResult {
-  const f = filling ?? {};
-  if (t.slots.some((s) => !f[s.id])) return { status: 'incomplete', message: MSG_FILL_ALL };
-  const groups = t.unordered ?? [];
-  for (const s of t.slots) {
-    const chosen = f[s.id]!;
-    const group = groups.find((g) => g.includes(s.id));
-    // In an unordered group a token may be accepted by any slot of the group.
-    const allowed = group ? t.slots.filter((o) => group.includes(o.id)).flatMap((o) => o.accepted) : s.accepted;
-    if (!allowed.includes(chosen)) {
-      return { status: 'wrong', slotId: s.id, message: s.diagnoses?.[chosen] ?? SLOT_GENERIC };
-    }
-  }
-  // Within a group every token may appear once only.
-  for (const group of groups) {
-    const first = new Map<string, string>();
-    for (const id of group) {
-      const chosen = f[id]!;
-      const other = first.get(chosen);
-      if (other !== undefined) {
-        // Point at the slot whose chip is not its own accepted token (else at the later one).
-        const earlier = t.slots.find((o) => o.id === other)!;
-        const blame = earlier.accepted.includes(chosen) ? t.slots.find((o) => o.id === id)! : earlier;
-        return { status: 'wrong', slotId: blame.id, message: blame.diagnoses?.[chosen] ?? SLOT_GENERIC };
-      }
-      first.set(chosen, id);
-    }
-  }
-  return { status: 'correct' };
-}
-
-export function checkCandidateTable(table: CandidateTableSpec, filling: CandidateFilling | undefined): CheckResult {
-  const f = filling ?? { rows: {} };
-  for (const r of table.rows) {
-    const rowFilling = f.rows[r.id] ?? {};
-    if (r.template.slots.some((s) => !rowFilling[s.id])) {
-      return { status: 'incomplete', message: 'חשבו את הערך בכל אחד מהמועמדים.'};
-    }
-  }
-  for (const r of table.rows) {
-    const res = checkSlots(r.template, f.rows[r.id]);
-    if (res.status === 'wrong') return { ...res, rowId: r.id };
-  }
-  if (!f.maximumRowId) return { status: 'incomplete', message: 'סמנו איזה מועמד נותן את המקסימום.' };
-  const chosen = table.rows.find((r) => r.id === f.maximumRowId);
-  if (!chosen || !chosen.isMaximum) {
-    return { status: 'wrong', rowId: f.maximumRowId, message: table.wrongMaximumMessage ?? 'זה אינו המועמד שנותן את המקסימום.' };
-  }
-  return { status: 'correct' };
-}
-
-export function checkChecklist(spec: ChecklistSpec, selected: string[] | undefined): CheckResult {
-  const chosen = new Set(selected ?? []);
-  if (chosen.size === 0) return { status: 'incomplete', message: 'סמנו את הנימוקים הנכונים.' };
-  for (const item of spec.items) {
-    if (chosen.has(item.id) && !item.required && !item.optional) {
-      return { status: 'wrong', itemId: item.id, message: item.diagnosis ?? 'אחד מהנימוקים שסימנתם אינו נכון.' };
-    }
-  }
-  for (const item of spec.items) {
-    if (item.required && !chosen.has(item.id)) {
-      return { status: 'wrong', itemId: item.id, message: item.diagnosis ?? 'חסר נימוק נדרש.' };
-    }
-  }
-  return { status: 'correct' };
-}
-
-export function checkChoice(spec: ChoiceSpec, optionId: string | undefined): CheckResult {
-  if (!optionId) return { status: 'incomplete', message: 'בחרו תשובה.' };
-  const option = spec.options.find((o) => o.id === optionId);
-  if (!option) return { status: 'wrong', message: 'הבחירה אינה מוכרת.' };
-  if (option.correct) return { status: 'correct' };
-  return { status: 'wrong', itemId: option.id, message: option.diagnosis ?? 'זו אינה התשובה הנכונה.' };
-}
-
-export function checkPart(part: StepPart, answer: PartAnswer): CheckResult {
-  switch (part.kind) {
-    case 'slots':
-      return checkSlots(part.template, answer as SlotFilling | undefined);
-    case 'table':
-      return checkCandidateTable(part.table, answer as CandidateFilling | undefined);
-    case 'checklist':
-      return checkChecklist(part.checklist, answer as string[] | undefined);
-    case 'choice':
-      return checkChoice(part.choice, answer as string | undefined);
-  }
-}
-
-/** Checks every part and reports the first one that is not correct (in part order). */
-export function checkStep(step: Step, answers: StepAnswers | undefined): StepCheckResult {
-  for (const part of step.parts) {
-    const res = checkPart(part, answers?.[part.id]);
-    if (res.status !== 'correct') return { ...res, partId: part.id };
-  }
-  return { status: 'correct' };
-}
-
-/** The reveal answers of a step ("הצג תשובה לשלב"), in the same shape `checkStep` accepts. */
-export function revealAnswers(step: Step): StepAnswers {
-  return Object.fromEntries(step.parts.map((p) => [p.id, p.reveal]));
 }

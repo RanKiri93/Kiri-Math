@@ -18,7 +18,6 @@ import {
   maximumPoint,
   plotX,
   signStripIntervals,
-  supApproximationLatex as approximationLatex,
   supPlotY,
   supVisibleCurve,
   tangentGeometry,
@@ -214,18 +213,6 @@ export function SupremumPlot({ example: ex, n, view, flags, probeX, onProbeChang
         {flags.signStrip && <span className="convergence-key" data-kind="sign">סימן הנגזרת</span>}
         {flags.maxMarker !== "none" && <span className="convergence-key" data-kind="max">{flags.maxMarker === "argmax" ? "המקסימום" : "נקודה חשודה לקיצון"}</span>}
         {flags.supLine && <span className="convergence-key" data-kind="sup">הסופרמום</span>}
-      </div>
-
-      <div className="convergence-readout supremum-readout" aria-live="polite" dir="rtl">
-        <strong>נקודת בדיקה: <MathText math={`x_0${approximationLatex(probeX)}`} /></strong>
-        {!probeInDomain ? <span>הנקודה מחוץ לתחום</span> : <>
-          {!inView(probeX) && <span>הנקודה מחוץ לחלון התצוגה</span>}
-          <span className="convergence-readout-values" dir="ltr">
-            <MathText math={`f_{${n}}(${supFormat(probeX)})${approximationLatex(probeY)}`} />
-            {tangent && <>; <MathText math={`f_{${n}}'(${supFormat(probeX)})${approximationLatex(tangent.slope)}`} /></>}
-            {flags.supLine && <>; <MathText math={`M_{${n}}${approximationLatex(supY)}`} /></>}
-          </span>
-        </>}
       </div>
     </figure>
   );

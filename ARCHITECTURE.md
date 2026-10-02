@@ -2,7 +2,7 @@
 
 מסמך זה מתאר את הארכיטקטורה של האתר: מעטפת הקורסים, מבנה התוכן, המודולים, שכבות הלוגיקה המתמטית, ומערכת העיצוב.
 
-**עדכון אחרון:** 30 בספטמבר 2026 (מעקב השלמת פעילויות)
+**עדכון אחרון:** 2 באוקטובר 2026 (תרגול מסכם בנושא סדרות פונקציות, כולל נושא הרציפות; פעילות «גבול ונגזרת», «גבול ואינטגרל» ו-shell מודרך גנרי)
 
 ---
 
@@ -17,7 +17,7 @@
 ├── /ode                                    משוואות דיפרנציאליות רגילות — פאנל «חומר הקורס»
     ├── /ode/1                              פרק 1 · סדרות וטורים של פונקציות
     │   ├── /ode/1/function-sequences              סדרות פונקציות                  [בבנייה]
-    │   │     └── תפריט פעילויות: מעבדת התכנסות פעילה; 3 פעילויות מתוכננות
+    │   │     └── תפריט פעילויות: ארבע פעילויות זמינות; פעילות אחת מתוכננת (גבול ונגזרת)
     │   ├── /ode/1/function-series                טורי פונקציות                    [בבנייה] · placeholder
     │   ├── /ode/1/power-series                   טורי חזקות                       [בבנייה] · placeholder
     │   └── /ode/1/taylor-series                  טורי טיילור                      [בבנייה] · placeholder
@@ -49,7 +49,7 @@
 | מישור פאזה | פעיל | שלם: מבוא, מעבדה, הרכבת מטריצה, תרגול |
 | מקדמים קבועים ואוילר | פעיל | שלם: מבוא, הרכבה, שלושה מצבי תרגול |
 | ליניאריות הומוגניות | **בבנייה** | מבוא ומעבדת הרכבה (סדר 2) פעילים; תרגול השלמה למערכת יסודית פעיל; לשונית וורונסקיאן placeholder; הורדת סדר כללית ויציבות עדיין תיאורטיות בלבד |
-| סדרות פונקציות | **בבנייה** | תפריט פעילויות ומסלול מעבדת התכנסות מודרך פעילים; שלוש פעילויות נוספות מתוכננות |
+| סדרות פונקציות | **בבנייה** | תפריט פעילויות ומסלול מעבדת התכנסות מודרך פעילים; ארבע פעילויות זמינות ופעילות אחת מתוכננת |
 | טורי פונקציות | **בבנייה** | placeholder |
 | טורי חזקות | **בבנייה** | placeholder |
 | טורי טיילור | **בבנייה** | placeholder |
@@ -88,7 +88,7 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 | `/ode/5/phase-plane` | `app/ode/5/phase-plane/page.tsx` | טוען את `PhasePlaneModule` |
 | `/ode/4/constant-coefficients-euler` | `app/ode/4/constant-coefficients-euler/page.tsx` | טוען את `ConstantCoefficientsEulerModule` (3 לשוניות) |
 | `/ode/4/linear-homogeneous` | `app/ode/4/linear-homogeneous/page.tsx` | טוען את `LinearHomogeneousModule` (4 לשוניות) |
-| `/ode/1/function-sequences` | `app/ode/1/function-sequences/page.tsx` | טוען את השלמות המשתמש (`getActivityCompletions`) ואת `SubjectModule` מהתיקייה המשותפת (prop `completions`); תפריט מציג מעבדת התכנסות מודרכת, את «מבחן הסופרמום: חישוב וטיעון» ועוד 3 פעילויות מתוכננות |
+| `/ode/1/function-sequences` | `app/ode/1/function-sequences/page.tsx` | טוען את השלמות המשתמש (`getActivityCompletions`) ואת `SubjectModule` מהתיקייה המשותפת (prop `completions`); תפריט מציג מעבדת התכנסות מודרכת, את «שימוש במבחן הסופרמום», את «רציפות פונקציית הגבול», את «גבול ואינטגרל», את «גבול ונגזרת» ואת «תרגול מסכם» (פעילות שאינה נמדדת; אין עוד פעילויות מתוכננות בתפריט) |
 | `/ode/1/function-series`, `/ode/1/power-series`, `/ode/1/taylor-series` | `app/ode/1/{function-series,power-series,taylor-series}/page.tsx` | טוענים את `SubjectModule` עם הנושא המתאים; תוכן placeholder |
 | `/ode/1/function-sequences-series` | `app/ode/1/function-sequences-series/page.tsx` | הפניה שרתית ל-`/ode/1/function-sequences` (307) |
 | `/fourier` | `app/fourier/page.tsx` | `CourseShell` ו-`CourseMaterialsPanel` עם איור קורס ייעודי |
@@ -148,7 +148,7 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 | רכיב | תפקיד |
 |---|---|
 | `drizzle/0001_activity_progress.sql` | טבלת `activity_completions`: משתמש, קורס, מודול, פעילות, זמן השלמה ראשון ואחרון ומספר השלמות; מפתח ראשי על הרביעייה; נמחקת עם המשתמש (`ON DELETE CASCADE`) |
-| `CourseModule.activities` (`_site/courseModel.ts`) | רישום הפעילויות הנמדדות (`id`, `title`); ב-`app/ode/course.ts` מודול סדרות הפונקציות רושם `convergence-lab` ו-`supremum-test` |
+| `CourseModule.activities` (`_site/courseModel.ts`) | רישום הפעילויות הנמדדות (`id`, `title`); ב-`app/ode/course.ts` מודול סדרות הפונקציות רושם `convergence-lab`, `supremum-test`, `limit-continuity`, `limit-integral` ו-`limit-derivative`; «תרגול מסכם» אינו רשום ואינו נמדד |
 | `model.ts` | טיפוסים (`ActivityCompletion`, `ActivityRef`), `completedCountByModule`, ו-`completionDateLabel` — תאריך עברי באזור הזמן הקבוע `Asia/Jerusalem`, כדי ששרת ודפדפן יציגו אותו דבר ולא תהיה אי־התאמת hydration |
 | `registry.ts` | `courseDefinitions`: slug של קורס → `CourseDefinition` |
 | `validation.ts` | `parseActivityRef` — מקבל רק פעילות שברישום (דרך `findActivity`) |
@@ -157,7 +157,7 @@ React מקומי בלבד: `useState` / `useMemo` / `useRef` / `useEffect`. **א
 | `client.ts` | `reportActivityCompletion` — `fetch` POST חד־כיווני (fire-and-forget) ל-`/api/progress/complete` |
 | `progress.test.ts`, `route.test.ts` | החנות (אידמפוטנטיות, הפרדת משתמשים וקורסים, מחיקה עם המשתמש), הרישום והולידציה, ספירה ותאריך, רינדור כרטיסי מודול ותפריט הפעילויות, ונתיב ה-HTTP (הצלחה, מקור זר, גוף לא תקין, session והרשאה, כשל אחסון) |
 
-**זרימה:** `SubjectModule` מדווח דרך callbacks `onFinish` — ב-`ConvergenceLab` כשנפתח מסך הסיום («המסלול הושלם»), וב-`SupremumActivity` בלחיצה על «לסיום» בשלב האחרון — ומציג בתפריט «✓ הושלמה ב־‏<תאריך>» (`.activity-completion-mark`) על כרטיסי פעילות שהושלמו. מדיניות כשל: התקדמות לעולם לא חוסמת למידה; כתיבה שנכשלה משאירה את הפעילות רצה ומציגה את הסימון לביקור הנוכחי בלבד, וקריאה שנכשלה אינה מציגה סימונים.
+**זרימה:** `SubjectModule` מדווח דרך callbacks `onFinish` — ב-`ConvergenceLab` כשנפתח מסך הסיום («המסלול הושלם»), וב-`SupremumActivity` ובפעילויות הרציפות והאינטגרל (דרך `GuidedExampleActivity`) בלחיצה על «לסיום» בשלב האחרון — ומציג בתפריט «✓ הושלמה ב־‏<תאריך>» (`.activity-completion-mark`) על כרטיסי פעילות שהושלמו. מדיניות כשל: התקדמות לעולם לא חוסמת למידה; כתיבה שנכשלה משאירה את הפעילות רצה ומציגה את הסימון לביקור הנוכחי בלבד, וקריאה שנכשלה אינה מציגה סימונים.
 
 **עדיין חסר:** עמוד «ההתקדמות שלי» לכל קורס, איפוס התקדמות לפעילות בודדת, תצוגה/איפוס למפעיל (`npm run auth -- progress`), ונקודות השלמה למודולי תרגול — ראו ה-backlog ב-`docs/plans/activity-progress.md`.
 
@@ -442,18 +442,18 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 
 המודול עוסק בחלק המתמטי הפותח של הקורס: סדרות פונקציות, טורי פונקציות, טורי חזקות וטורי טיילור.
 
-`SubjectModule.tsx` הוא shell משותף, נטען מדפי הנושא השונים בפרק 1. הוא מציג topbar ו-breadcrumbs, ובנושא סדרות פונקציות תפריט פעילויות עם מצב מקומי `openActivity: "lab" | "supremum" | null` לפתיחת פעילות וחזרה לתפריט. לאחר mount ראשון כל פעילות שהופעלה נשארת ב-host מוסתר משלה כשהתפריט או פעילות אחרת מוצגים, כדי לשמר את מצבה בזיכרון; מעבר להגדרות ובחזרה, וכן חזרה לתפריט, אינם מאפסים עבודה. בתפריט כרטיס «מבחן הסופרמום: חישוב וטיעון» אחרי כרטיס המעבדה (פעילות זמינה, לא נעולה); תיאורו ממליץ לעבור קודם את מעבדת ההתכנסות (ראו `SubjectModule.test.ts`). prop רשות `completions` מציג על כרטיס פעילות שהושלמה «✓ הושלמה ב־‏<תאריך>», ו-callbacks `onFinish` ב-`ConvergenceLab` וב-`SupremumActivity` מדווחים השלמה לשרת (ראו «מעקב השלמת פעילויות» ב-§2). שני כרטיסי הפעילות הזמינים ממוספרים בכותרת («1. התכנסות נקודתית ובמידה שווה», «2. שימוש במבחן הסופרמום») ואין להם עוד תווית «פעילות זמינה». טקסט המבוא של התפריט עטוף ב-`.convergence-menu-lead`, ו-`.convergence-menu .module-intro-content` הוא גריד דו־עמודות (≈7fr/3fr) עם צד «לקריאה ברשימות» בצד, מופרד בגבול inline-start; ב-≤820px הוא חוזר לערימה עם מפריד אופקי. רענון או עזיבת הנתיב מאפסים אותה. יתר שלושת הנושאים מציגים את רכיבי ה-placeholder שלהם. `FunctionSequencesSeriesModule.tsx`,‏ `FunctionSequencesSeriesIntro.tsx`,‏ `FunctionSequencesSection.tsx` ו-`types.ts` הישנים הוסרו; הנתיבים הישנים מפנים לנושא סדרות הפונקציות.
+`SubjectModule.tsx` הוא shell משותף, נטען מדפי הנושא השונים בפרק 1. הוא מציג topbar ו-breadcrumbs, ובנושא סדרות פונקציות תפריט פעילויות עם מצב מקומי `openActivity: "lab" | "supremum" | "continuity" | "integral" | "derivative" | "practice" | null` לפתיחת פעילות וחזרה לתפריט. לאחר mount ראשון כל פעילות שהופעלה נשארת ב-host מוסתר משלה כשהתפריט או פעילות אחרת מוצגים, כדי לשמר את מצבה בזיכרון; מעבר להגדרות ובחזרה, וכן חזרה לתפריט, אינם מאפסים עבודה. בתפריט כרטיס «שימוש במבחן הסופרמום» אחרי כרטיס המעבדה (פעילות זמינה, לא נעולה); תיאורו ממליץ לעבור קודם את מעבדת ההתכנסות (ראו `SubjectModule.test.ts`), ואחריו כרטיס «רציפות פונקציית הגבול» (מזהה פעילות `limit-continuity`; ואחריו «גבול ואינטגרל» (מזהה `limit-integral`), ואחריו «גבול ונגזרת» (מזהה `limit-derivative`; מונה הפרק הוא עתה מתוך 5)), ואחריו כרטיס «6. תרגול מסכם» עם הכפתור «כניסה לתרגול» (`.practice-menu-card`) ללא סימון השלמה: `Activity` כולל `"practice"`, ו-`TrackedActivity` (`Exclude<Activity, "practice">`) קובע את מפתחות `ACTIVITY_IDS` והשלמות; `course.ts` לא השתנה (חמש פעילויות נמדדות)). prop רשות `completions` מציג על כרטיס פעילות שהושלמה «✓ הושלמה ב־‏<תאריך>», ו-callbacks `onFinish` ב-`ConvergenceLab`, ב-`SupremumActivity` ובפעילויות הרציפות, האינטגרל והנגזרת מדווחים השלמה לשרת (ראו «מעקב השלמת פעילויות» ב-§2). חמשת כרטיסי הפעילות הנמדדים ממוספרים בכותרת («1. התכנסות נקודתית ובמידה שווה», «2. שימוש במבחן הסופרמום», «3. רציפות פונקציית הגבול», «4. גבול ואינטגרל», «5. גבול ונגזרת»; הכרטיס השישי הוא «6. תרגול מסכם») ואין להם עוד תווית «פעילות זמינה». טקסט המבוא של התפריט עטוף ב-`.convergence-menu-lead`, ו-`.convergence-menu .module-intro-content` הוא גריד דו־עמודות (≈7fr/3fr) עם צד «לקריאה ברשימות» בצד, מופרד בגבול inline-start; ב-≤820px הוא חוזר לערימה עם מפריד אופקי. רענון או עזיבת הנתיב מאפסים אותה. יתר שלושת הנושאים מציגים את רכיבי ה-placeholder שלהם. `FunctionSequencesSeriesModule.tsx`,‏ `FunctionSequencesSeriesIntro.tsx`,‏ `FunctionSequencesSection.tsx` ו-`types.ts` הישנים הוסרו; הנתיבים הישנים מפנים לנושא סדרות הפונקציות.
 
 ### לשוניות
 
 | לשונית | קומפוננטה | מצב |
 |---|---|---|
-| סדרות פונקציות (`function-sequences`) | `SubjectModule` → תפריט פעילויות / `ConvergenceLab` | **פעיל חלקית** — שתי פעילויות: מסלול מודרך של ארבעה שיעורים במעבדת התכנסות ופעילות «מבחן הסופרמום»; שלוש פעילויות נוספות מתוכננות |
+| סדרות פונקציות (`function-sequences`) | `SubjectModule` → תפריט פעילויות / `ConvergenceLab` | **פעיל חלקית** — חמש פעילויות: מסלול מודרך של ארבעה שיעורים במעבדת התכנסות, פעילות «מבחן הסופרמום», «רציפות פונקציית הגבול», «גבול ואינטגרל» ו-«גבול ונגזרת» (טיוטות), ובנוסף «תרגול מסכם» לא נמדד (תשתית עם מאגר דמו); אין פעילויות מתוכננות בתפריט |
 | טורי פונקציות (`function-series`) | `SubjectModule` → `FunctionSeriesSection` | **placeholder** |
 | טורי חזקות (`power-series`) | `SubjectModule` → `PowerSeriesSection` | **placeholder** |
 | טורי טיילור (`taylor-series`) | `SubjectModule` → `TaylorSeriesSection` | **placeholder** |
 
-שלושת הנושאים `function-series`, `power-series`, `taylor-series` מציגים placeholders עם תיאור קצר ופעילויות מתוכננות. בנושא סדרות הפונקציות מוצג תפריט פעילות נפרד: מעבדת ההתכנסות פעילה כמסלול רציף בן ארבעה שיעורים, ומבחן הסופרמום פעיל כפעילות נפרדת; שלוש פעילויות על רציפות, אינטגרל ונגזרת מתוכננות. ציור המעבדה הוא SVG מקורי, לא Canvas ולא תלות plotter.
+שלושת הנושאים `function-series`, `power-series`, `taylor-series` מציגים placeholders עם תיאור קצר ופעילויות מתוכננות. בנושא סדרות הפונקציות מוצג תפריט פעילות נפרד: מעבדת ההתכנסות פעילה כמסלול רציף בן ארבעה שיעורים, ומבחן הסופרמום, רציפות פונקציית הגבול גבול ואינטגרל וגבול ונגזרת פעילים כפעילויות נפרדות. ציור המעבדה הוא SVG מקורי, לא Canvas ולא תלות plotter.
 
 ### מעבדת התכנסות
 
@@ -484,16 +484,17 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 | `sequencePlot.test.ts` | גאומטריית הגרף ותנאי תצוגה |
 | `components/convergenceRendering.test.ts` | SSR: הסתרת גבול לפני תחזית, קצה פתוח/סגור, היעדר פאנל ערכים מתחת לגרף, מעטפת תנודות והמשך חזותי של `x^n` בלי לשנות את התחום הפעיל |
 
-### מבחן הסופרמום: חישוב וטיעון
+### שימוש במבחן הסופרמום
 
-פעילות שנייה בנושא סדרות פונקציות, המלווה בתוכנית `docs/plans/supremum-test-activity.md` (§7 מתעד את החלטות המרצה). התלמיד מחשב בפועל את `M_n=\sup|f_n-f|` ומנמק את המסקנה לפי מבחן הסופרמום: קיום מקסימום, משפט פרמה, נקודות קצה, ואז התכנסות `M_n→0` או היעדרה. סדר הדוגמאות: E1 → E1′ → E2 → E3 → E3′ (סה״כ 27 שלבים), בחלוקה: E1 `nxe^{-nx}` על `[0,∞)`, E1′ אותה על `[1,∞)`, E2 `nx^2e^{-nx}`, E3 `x^n(1-x^n)` על `[0,1]`, E3′ אותה על `[0,1/2]`. `SUP_MAX_N = 64`. התשובות הן **אסימונים (tokens) מתוך מאגר סגור** ותבניות מודרכות; אין CAS ואין קלט נוסחה חופשי (החלטת המרצה), ו-`e` מופיע רק בתוך מחרוזות LaTeX. כל הטקסט העברי נמצא ב-`supremumArgument.ts`.
+פעילות שנייה בנושא סדרות פונקציות, המלווה בתוכנית `docs/plans/supremum-test-activity.md` (§7 מתעד את החלטות המרצה). התלמיד מחשב בפועל את `M_n=\sup|f_n-f|` ומנמק את המסקנה לפי מבחן הסופרמום: קיום מקסימום, משפט פרמה, נקודות קצה, ואז התכנסות `M_n→0` או היעדרה. סדר הדוגמאות: E1 → E1′ → E2 → E3 → E3′ (סה״כ 27 שלבים), בחלוקה: E1 `nxe^{-nx}` על `[0,∞)`, E1′ אותה על `[1,∞)`, E2 `nx^2e^{-nx}`, E3 `x^n(1-x^n)` על `[0,1]`, E3′ אותה על `[0,1/2]`. `SUP_MAX_N = 64`. התשובות הן **אסימונים (tokens) מתוך מאגר סגור** ותבניות מודרכות; אין CAS ואין קלט נוסחה חופשי (החלטת המרצה), ו-`e` מופיע רק בתוך מחרוזות LaTeX. נתוני השלבים והטקסט העברי נמצאים ב-`supremumArgument.ts`; מנוע השלבים עצמו (מודל, בונים ובודקים) משותף ב-`guidedSteps.ts` ומשמש גם את פעילות הרציפות (ראו «מנוע שלבים מודרך משותף»).
 
 | רכיב (`components/`) | תפקיד |
 |---|---|
-| `SupremumActivity.tsx` | shell הפעילות על `LabWorkspace`/`TaskCard`/`SliderPanel`, במבנה שלבים כמו מעבדת ההתכנסות: מסך מטרה, מסלול של חמש דוגמאות (`StageNavigator` עם `.supremum-progress-list`, חמש עמודות, שלוש עד 1180px ושתיים עד 640px), כותרת וחריץ הסבר לכל דוגמה, ומסך סיום עם חקירה חופשית (שבבי הדוגמאות מופיעים רק בה). מעבר בין שלבים, משוב, רמזים וחשיפה. `initialView` רשות (`"intro"`/`"E1"`) משמש את בדיקות ה-SSR; `onFinish` נקרא בפתיחת מסך הסיום |
+| `SupremumActivity.tsx` | shell הפעילות על `LabWorkspace`/`TaskCard`/`SliderPanel`, במבנה שלבים כמו מעבדת ההתכנסות: מסך מטרה, מסלול של חמש דוגמאות (`StageNavigator` עם `.supremum-progress-list`, חמש עמודות, שלוש עד 1180px ושתיים עד 640px), כותרת לכל דוגמה (`.supremum-example-header`: «דוגמה k» בכחול ולצידה הסדרה והתחום בתיבה `.supremum-example-formula`; בכרטיס השלב אין עוד כרטיס נוסחה) וחריץ הסבר, ומסך סיום עם חקירה חופשית (שבבי הדוגמאות מופיעים רק בה). מעבר בין שלבים, משוב, רמזים וחשיפה. `initialView` רשות (`"intro"`/`"E1"`) משמש את בדיקות ה-SSR; `onFinish` נקרא בפתיחת מסך הסיום |
+| `SupremumProofDialog.tsx` | עטיפה דקה מעל `GuidedProofDialog.tsx` עם `SUP_FULL_PROOFS`: חלון קופץ (`<dialog>` מודאלי מקורי, כמו קורא הרשימות) שנפתח מעצמו כשהשלב האחרון שנותר בדוגמה נפתר או נחשף: «הוכחה מלאה ותמציתית» של הדוגמה כולה מתוך `SUP_FULL_PROOFS`, עם «חזרה לדוגמה» ו«לדוגמה הבאה»/«לסיום הפעילות». בדוגמה שהושלמה כפתור «ההוכחה המלאה» בכותרת הדוגמה פותח אותו שוב |
 | `SupremumExampleExplanations.tsx` | חריצי הסבר מהמרצה לכל דוגמה (`null` עד שייכתב טקסט), כמו `ConvergenceLessonExplanations.tsx` |
-| `SupremumIntro.tsx` | מסך הפתיחה (מטרת הפעילות, ניסוח מבחן הסופרמום ומתכון בן חמישה שלבים לחישוב $M_n$); הפעילות נפתחת בו, ופעולת «מטרת הפעילות» חוזרת אליו בלי לאבד התקדמות |
-| `SupremumPlot.tsx` | גרף G1 ב-SVG: העקום, הקשר מעומעם מחוץ לתחום, משיק, רצועת סימן של `f_n′`, סמן מקסימום, קו הסופרמום ובוחרי חלון צפייה |
+| `SupremumIntro.tsx` | מסך הפתיחה (מטרת הפעילות, ניסוח מבחן הסופרמום בתיבה מודגשת `.convergence-definition.formal` כמו ההגדרות במעבדת ההתכנסות, ומתכון בן חמישה שלבים לחישוב $M_n$); הפעילות נפתחת בו, ופעולת «מטרת הפעילות» חוזרת אליו בלי לאבד התקדמות |
+| `SupremumPlot.tsx` | גרף G1 ב-SVG: העקום, הקשר מעומעם מחוץ לתחום, משיק, רצועת סימן של `f_n′`, סמן מקסימום, קו הסופרמום ובוחרי חלון צפייה; מתחת לגרף רק מקרא, בלי פאנל ערכים |
 | `SupSequencePlot.tsx` | גרף G2: `M_n` כנגד `n`, רצועת ε וקריאת «n>N» |
 | `SlotTemplate.tsx` | תבנית משבצות עם אסימונים, כולל קבוצות `unordered` רשות |
 | `CandidateTable.tsx` | טבלת מועמדים עם כיתוב לכל שורה |
@@ -506,16 +507,72 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 |---|---|
 | `supremumTypes.ts` | החוזה המשותף: אסימונים, תבניות משבצות (עם קבוצות `unordered`), טבלאות מועמדים, רשימות בדיקה (עם פריטי «נכון אך לא נדרש»), בחירות ו-`CheckResult` |
 | `supremumExamples.ts` | הדוגמאות המוכנות E1, E1p, E2, E3, E3p (`SUP_EXAMPLES`, `SUP_EXAMPLE_ORDER`), `SUP_MAX_N`, בדיקות תחום |
-| `supremumArgument.ts` | מאגר האסימונים, נתוני השלבים לכל דוגמה (`SUP_STEPS`), הבודקים (`checkSlots`, `checkCandidateTable`, `checkChecklist`, `checkChoice`, `checkStep`), דגלי הגרף והעתקי העברית |
+| `supremumArgument.ts` | נתוני הסופרמום בלבד: מאגר האסימונים (`SUP_TOKENS`), נתוני השלבים לכל דוגמה (`SUP_STEPS`), דגלי הגרף (`GraphFlags`, `graphFlagsFor`) והעתקי העברית; מגדיר `Step = GuidedStep<SupExampleId, GraphFlags>` ומייצא מחדש את המנוע המשותף מ-`guidedSteps.ts` כדי שהמייבאים הקיימים לא ישתנו |
 | `supremumPlot.ts` | גאומטריית הגרפים: עקום ואזור הקשר, משיק, רצועת סימן, נקודות `M_n`, רצועת ε וקריאת «n>N», עיצוב מספרים |
 | `supremumViews.ts` | חלונות צפייה (שבבים) וגבולות בדיקת הנקודה |
-| `supremumProgress.ts` | התקדמות בין הדוגמאות: דוגמה הושלמה כשכל שלביה נפתרו או נחשפו; דוגמה (ומסך הסיום) נפתחת רק אחרי כל הקודמות (`canOpenSupremumView`) |
+| `supremumProgress.ts` | (ההתקדמות הגנרית ב-`guidedProgress.ts`) התקדמות בין הדוגמאות: דוגמה הושלמה כשכל שלביה נפתרו או נחשפו, או שהושלמה לפני התחלה מחדש (`finishedBefore` רשות ב-`completedExamples`); דוגמה (ומסך הסיום) נפתחת רק אחרי כל הקודמות (`canOpenSupremumView`, גם הוא עם `finishedBefore` רשות) |
+| `supremumProofs.ts` | `SUP_FULL_PROOFS`: הוכחה מלאה ותמציתית לכל דוגמה, בחלקים ממוספרים (כותרת, גוף עם מתמטיקה משולבת, משוואה מוצגת רשות), לפי סדר הטיעון של השלבים; טיעון הקיום ב-$[0,\infty)$ משותף (`EXISTENCE_PROOF`) |
 | `supremumOrder.ts` | סדר תצוגה דטרמיניסטי ומעורבב (hash של המזהה → `mixSeed` → `SeededRandom`) לאפשרויות, לפריטי רשימות ולשבבי המשבצות, כדי שמיקום התשובה הנכונה לא יסגיר אותה; הבדיקה לפי מזהים ואינה מושפעת. `supremumArgument.test.ts` אוכף גם איזון אורכים בין האפשרויות |
 
 | בדיקות | כיסוי |
 |---|---|
 | `math/supremumExamples.test.ts`, `math/supremumArgument.test.ts`, `math/supremumPlot.test.ts`, `math/supremumVerify.test.ts`, `math/supremumProgress.test.ts` | הדוגמאות, הבודקים, גאומטריית הגרפים, אימות מספרי של הנתונים וסדר פתיחת הדוגמאות |
 | `components/supremumInputs.test.ts`, `components/supremumRendering.test.ts` | רכיבי הקלט ורינדור SSR של הפעילות והגרפים |
+
+### מנוע שלבים מודרך משותף
+
+מנוע השלבים של פעילות הסופרמום הופרד לקבצים משותפים; כל פעילות מודרכת שומרת רק את הדוגמאות, האסימונים, מצב הגרף וההעתקים שלה. אין CAS: התשובות הן מזהי אסימונים ואפשרויות.
+
+| קובץ | תפקיד |
+|---|---|
+| `math/guidedSteps.ts` | המודל הגנרי `GuidedStep<E, G>` (דוגמה `E`, דגלי גרף `G`), סוגי החלקים (משבצות, טבלת מועמדים, רשימת בדיקה, בחירה) ו-`ProofSection`; הבונים `L`, `S`, `slot`, `template`, `slotsPart`, `row`, `tablePart`, `checklistPart`, `choicePart`; הבודקים `checkSlots`, `checkCandidateTable`, `checkChecklist`, `checkChoice`, `checkPart`, `checkStep`, `revealAnswers`, ו-`unneededChoices` (פריטי «נכון אך לא נדרש» שסומנו). לשלב יכולה להיות `minimalProof` (ההוכחה התמציתית, מוצגת אחרי פתרון השלב), ולפריט «נכון אך לא נדרש» טקסט `unneeded`. הטיפוסים הבסיסיים נשארים ב-`supremumTypes.ts` |
+| `math/guidedProgress.ts` | התקדמות גנרית בסדר קבוע: `GuidedView`, `StepsDone`, `areStepsDone`, `finishedExamples`, `canOpenGuidedView`; שתי האחרונות מקבלות `ProgressOptions` ‏(`finishedBefore`: דוגמאות שהושלמו ואז הותחלו מחדש, ו-`optional`: דוגמאות רשות שאינן חוסמות). בדיקות ב-`math/guidedProgress.test.ts` |
+| `components/GuidedStepParts.tsx` | `PartView` (פלטת האסימונים מועברת כ-prop), `SolvedNote` («נימוק מיותר:» מתחת להוכחה), `tokenMap`, `WrongLocation` — הועברו מ-`SupremumActivity.tsx` |
+| `components/GuidedExampleActivity.tsx` | shell גנרי `GuidedExampleActivity<E, G>` לפעילות מודרכת בדוגמאות, המוגדר ב-`GuidedActivityConfig`: `className`, `idPrefix`, `listClassName`, `title`, `subtitle`, `order`, `steps`, `tokens`, `formula`, `caption`, `graphFlagsFor`, `exploreFlags`, `epsilonEnabled`, `nMax`, `renderPlots`, רכיב `Intro`, `summary` רשות, ו-`finishTitle`/`finishBody`, וכן `optional` (דוגמאות רשות) ו-`splitEnabled(id, flags)` רשות. דוגמת רשות אינה חוסמת דבר (מסך הסיום דורש רק את הנדרשות), התווית והכותרת שלה נושאות «(רשות)», ובסוף הדוגמה הנדרשת האחרונה כרטיס השלב וחלון הסיכום מציעים «לסיום הפעילות» (ראשי) ו«לדוגמת הרשות». ה-shell מחזיק את נקודת הפיצול `a` (0.02–0.9, ברירת מחדל 0.2), מציג `.guided-split-slider` ב-`extra` של פאנל המחוונים כש-`splitEnabled` מחזיר true, ומעביר `split` ל-`renderPlots`. בכרטיס השלב (כשאינו הראשון) כפתור «לשלב הקודם», ובכותרת הדוגמה (`.guided-example-actions`, אחרי שיש התקדמות) «התחלת הדוגמה מחדש»: מנקה את תשובות הדוגמה וחוזר לשלבה הראשון, והדוגמה נשארת גמורה דרך רשימת `finishedBefore`. אותם שני כפתורים בפעילות הסופרמום, ב-shell משלה (בוחן נקודה וחלונות צפייה) |
+| `components/GuidedProofDialog.tsx` | החלון הקופץ הגנרי בסוף דוגמה, `GuidedProofDialog` (שורת `kicker`, כותרת, `lead` רשות, `secondaryNext` רשות — פעולה שנייה כמו מעבר לדוגמת רשות — ותוכן כ-children), ושני סוגי תוכן: `ProofContent` (הוכחה בחלקים ממוספרים, פעילות הסופרמום) ו-`SummaryContent` (סיכום בפסקאות `.guided-summary`, פעילות הרציפות); `SupremumProofDialog.tsx` עוטף אותו |
+
+`StageNavigator` ו-`StagePaging` מ-`ConvergenceNavigator.tsx` משמשים גם את פעילויות הרציפות, האינטגרל והנגזרת.
+
+### רציפות פונקציית הגבול
+
+פעילות שלישית בנושא סדרות פונקציות (מזהה `limit-continuity`), על המנוע המשותף: גבול במידה שווה של פונקציות רציפות הוא רציף. **הטקסטים הם טיוטה** — שלושה שלבים לכל דוגמה, שייכתבו מחדש דוגמה אחר דוגמה עם בעל הקורס. הדוגמאות: C1 `x^n/(1+x^{2n})` על `[0,2]`; C2 `(n+1)^2 x` על `[0,1/(n+1)]` ו-`1/x` על `[1/(n+1),1]`, על `[0,1]`; C3 `⌊nx⌋/n` על `[0,1)`. `CONT_MAX_N = 40`.
+
+| רכיב | תפקיד |
+|---|---|
+| `math/continuityExamples.ts` | הדוגמאות כקטעים עם קצוות פתוחים/סגורים, גבולות ו-`ContGraphFlags` ‏(`limit`, `band`, `jumps`) |
+| `math/continuitySteps.ts` | שלבי הטיוטה `CONT_STEPS`, האסימונים `CONT_TOKENS`, `CONTINUITY_THEOREM`, `contGraphFlagsFor`, ו-`CONT_SUMMARIES`: סיכום בפסקאות לכל דוגמה (טקסט בעל הקורס), שמוצג בחלון קופץ «סיכום הדוגמה» כשהשלב האחרון בדוגמה נפתר או נחשף, ונפתח שוב מכפתור «סיכום הדוגמה» בכותרת הדוגמה |
+| `components/ContinuityPlot.tsx` | גרף SVG: כל קטע מצויר בנפרד, רצועת ε, נקודות קצה (עד `n≤12`), סמן אי־רציפות וסמן פסגה חתוכה ב-C2; מקרא בלבד, בלי פאנל ערכים. מחלקות `.continuity-*` ב-`globals.css` |
+| `components/ContinuityIntro.tsx` | מסך הפתיחה, המשפט בתיבה `.convergence-definition.formal` |
+| `components/ContinuityActivity.tsx` | קונפיגורציה בלבד מעל `GuidedExampleActivity` (מבנה השלבים של פעילות הסופרמום): פתיחה, שלוש דוגמאות (`.continuity-progress-list`, שלוש עמודות ושתיים עד 640px), כותרת עם נוסחה, כרטיס שלב, גרף, מחווני `n` ו-ε, מסך סיום עם חקירה חופשית; `initialView` לבדיקות SSR ו-`onFinish` בפתיחת מסך הסיום |
+| `components/continuityActivity.test.ts`, `components/continuityPlot.test.ts`, `math/continuityExamples.test.ts` | רינדור SSR של הפעילות, גאומטריית הגרף ונתוני הדוגמאות |
+
+### גבול ואינטגרל
+
+פעילות רביעית בנושא סדרות פונקציות (מזהה `limit-integral`), על המנוע המשותף ועל `GuidedExampleActivity`: התכנסות במידה שווה מאפשרת להחליף בין גבול לאינטגרל. **הטקסטים הם טיוטה** שתיכתב מחדש עם בעל הקורס. הדוגמאות, כולן על `[0,1]`: I1 `x/(1+n³x³)`; I2 `nx/(1+n²x²)`; I3 `cos^n x` (דוגמת רשות). `INT_ACTIVITY_ORDER = ["I1","I2","I3"]`, `INT_OPTIONAL = ["I3"]`, `INT_MAX_N = 40`. I1 בארבעה שלבים: גבול נקודתי, נקודה קריטית, `M_n` ומסקנה על האינטגרלים לפי המשפט; I2 בארבעה שלבים: גבול נקודתי, אי־התכנסות במידה שווה דרך `f_n(1/n)=1/2`, האינטגרלים `ln(1+n²)/(2n)→0`, ולמה אין סתירה למשפט; I3 (רשות, `cos^n x`) בשלושה שלבי טיוטה: הגבול הנקודתי וחוסר ההתכנסות במידה שווה לפי משפט הרציפות, פיצול האינטגרל (`∫₀ᵃ ≤ a`, ו-`∫ₐ¹ → 0` לפי המשפט, כשההתכנסות במידה שווה על `[a,1]` נתונה), והרכבת ε עם `a = ε/2`. מחוון הפיצול `a` מוצג רק ב-I3. סיכומים (`INT_SUMMARIES`, טיוטה) לשלוש הדוגמאות מוצגים בחלון הסיכום.
+
+| רכיב | תפקיד |
+|---|---|
+| `math/integralExamples.ts` | שלוש הדוגמאות, `IntGraphFlags` ‏(`limit`, `area`, `band`, `integrals`, `supremum`, `split` רשות), `integral(n)` (צורה סגורה ל-I2, סימפסון אדפטיבי לשאר), `sup(n)`, `INT_MAX_N` ו-`i3SupBeyond` |
+| `math/integralSteps.ts` | שלבי הטיוטה `INT_STEPS`, `INT_ACTIVITY_ORDER`, `INT_OPTIONAL`, `INT_SUMMARIES`, `INT_TOKENS`, `INTEGRAL_THEOREM`, `intGraphFlagsFor` |
+| `components/IntegralPlot.tsx` | גרף SVG של השטח המוצלל מתחת ל-`f_n`, עם `split` רשות בנקודה `a` (I3). `integralSamples` מסתיימת בדיוק ב-`to`: צעדי הנקודה הצפה חרגו מהתחום והפילו את דוגמת הרשות |
+| `components/IntegralSequencePlot.tsx` | `I_n` כנגד `n` עם קו הייחוס `∫f`, ורשות `M_n` כנגד `n`. מחלקות `.integral-*` ו-`.integral-progress-list` ב-`globals.css` |
+| `components/IntegralIntro.tsx` | מסך הפתיחה (טיוטה), המשפט בתיבה `.convergence-definition.formal` מתחת למפריד |
+| `components/IntegralActivity.tsx` | קונפיגורציה בלבד מעל `GuidedExampleActivity`, `initialView` לבדיקות SSR ו-`onFinish` |
+| `components/integralActivity.test.ts`, `components/integralPlot.test.ts`, `math/integralExamples.test.ts` | שלבים ורינדור SSR של הפעילות, גאומטריית הגרפים ונתוני הדוגמאות |
+
+### גבול ונגזרת
+
+פעילות חמישית בנושא סדרות פונקציות (מזהה `limit-derivative`), על המנוע המשותף ועל `GuidedExampleActivity`: משפט הגזירה איבר־איבר. **הטקסטים הם טיוטה** שתיכתב מחדש עם בעל הקורס. הדוגמאות, כולן על `[0,1]`: D1 `ln(1+nx^2)/n`; D2 `arctan(x^n)/n`; D3 `f_n=n`. `DER_MAX_N = 40`. D1 בארבעה שלבים: התכנסות בנקודה `x_0=0`, הנגזרת, התכנסות במידה שווה של הנגזרות לפי חסם ממוצע חשבוני־הנדסי `1/\sqrt n`, והמסקנה `f≡0`; D2 בארבעה שלבים: `x_0=0`, הנגזרת, גבולה הלא רציף (ולכן ההתכנסות אינה במידה שווה), ו-`f_n→0` במידה שווה אך `f'(1)=0≠g(1)=1/2`; D3 בשני שלבים: `f_n'≡0` במידה שווה, וההנחה שנכשלת — ההתכנסות בנקודה אחת. טרם נכתבו סיכומים לדוגמאות.
+
+| רכיב | תפקיד |
+|---|---|
+| `math/derivativeExamples.ts` | שלוש הדוגמאות, `DerGraphFlags` ‏(`limit`, `band`, `derivative`, `derivLimit`, `derivBand`), `derivative`, `derivativeLimit`, `sup`, `derivativeSup`, `limit` (`null` ב-D3), `DER_MAX_N`, `derivativeView` |
+| `math/derivativeSteps.ts` | שלבי הטיוטה `DER_STEPS`, `DER_TOKENS`, `DERIVATIVE_THEOREM` ‏(`hypotheses` — שלוש הנחות, ו-`conclusion`), `derGraphFlagsFor`. אין עדיין `DER_SUMMARIES` |
+| `components/DerivativePlot.tsx` | גרף SVG באחד או שני איורים: `f_n` עם `f`, ועם `flags.derivative` גם `f_n'` עם `g=\lim f_n'` (קפיצת D2 ב-`x=1` עם נקודות פתוחה/סגורה); רצועות ε, סמן ערך חתוך ב-D3; מקרא בלבד, בלי פאנל ערכים. מחלקות `.derivative-*` ו-`.derivative-progress-list` ב-`globals.css` |
+| `components/DerivativeIntro.tsx` | מסך הפתיחה (טיוטה), המשפט בתיבה `.convergence-definition.formal` עם שלוש ההנחות כרשימה ממוספרת |
+| `components/DerivativeActivity.tsx` | קונפיגורציה בלבד מעל `GuidedExampleActivity` (ε פעיל כשאחת הרצועות דלוקה), `initialView` לבדיקות SSR ו-`onFinish` |
+| `components/derivativeActivity.test.ts`, `components/derivativePlot.test.ts`, `math/derivativeExamples.test.ts` | שלבים ורינדור SSR של הפעילות (כולל סריקה של כל מצב שלב וכל `n`), גאומטריית הגרפים ונתוני הדוגמאות |
+| `components/guidedPlotsSweep.test.ts` | סריקת רינדור של גרפי הרציפות והאינטגרל בכל מצב שלב, כל `n` וכל נקודת פיצול |
 
 ### מבוא
 
@@ -526,24 +583,57 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 - טורי חזקות — מרכז, רדיוס, קטעים פנימיים, נקודות קצה, גזירה ואינטגרציה איבר־איבר.
 - טורי טיילור — הקשר `a_n=f^{(n)}(x_0)/n!` ובניית טורים מתוך טורים מוכרים.
 
+### תרגול מסכם (`practice/`)
+
+כרטיס שישי בתפריט סדרות הפונקציות, בתוכנית `docs/plans/summary-practice.md`. התלמיד מגריל תרגילים מכל הנושאים או מנושא אחד; כל תרגיל הוא כרטיס אחד שצעדיו נפתחים זה מתחת לזה. **אינו נמדד**: אין `onFinish`, אין סימון השלמה, והוא אינו רשום ב-`course.ts`. התרגילים נוצרים ממשפחות פרמטריות, והצעדים משתמשים במנוע השלבים המשותף (`guidedSteps.ts`). שכבת ה-`practice/` טהורה (ללא React) ומשתמשת ב-`SeededRandom` וב-`mixSeed` מ-`constant-coefficients-euler/practice/random.ts`.
+
+| קובץ | תפקיד |
+|---|---|
+| `practice/practiceTypes.ts` | `PRACTICE_TOPICS` (`pointwise` «התכנסות נקודתית ובמידה שווה» — כולל משפחות מבחן הסופרמום, שאינו עוד נושא נפרד מאז 2 באוקטובר 2026 — `continuity` «רציפות הגבול», `integral`, `derivative`) ותוויות עבריות, `PracticeFilter`, רמות קושי (`PracticeLevel`, `PRACTICE_DIFFICULTIES`, `PRACTICE_LEVEL_LABELS`), `PracticePlotSpec` (פונקציה, גבול או `null`, תחום, חלון תצוגה סופי, `maxN`, וסמן ותווית רשות, ובנוסף `breaks?: (n) => number[]` ו-`limitBreaks?: number[]` — נקודות פנימיות שבהן \(f_n\) או הגבול קופצים או לוקחים ערך מבודד; בלעדיהם הגרף הוא קו אחד), `PracticeExercise`, `PracticeFamily` (מזהה, נושא, `difficulties` — הרמות שהמשפחה מסוגלת לייצר, ו-`generate(rng, difficulty?)`) ו-`PracticeStep = GuidedStep<string, null>` |
+| `practice/practiceFamilies.ts` | המאגר (`PRACTICE_FAMILIES`). שתי משפחות דמו — `x^n` על `[0,b]` (קל) ו-`x^n/(c+x^n)` על `[0,2]` (רציפות, בינוני) — ועליהן `SUPREMUM_FAMILIES` `UNIFORM_FAMILIES` ו-`CONTINUITY_FAMILIES` (דמו הקפיצה `jumping-limit` נשאר בנושא הרציפות לצד חמש המשפחות) |
+| `practice/supremumFamilies.ts` | משפחות הסופרמום, הרשומות בנושא «התכנסות נקודתית ובמידה שווה» (`pointwise`; מאז 2 באוקטובר 2026 נושא אחד עם משפחות ההתכנסות במידה שווה, בלי נושא «מבחן הסופרמום» נפרד): A: \(n^a x^b e^{-n^c x^d}\), B: \(n^a x^b/(1+n^c x^d)\), על שמונה תחומים (`[0,∞)`, `[0,1]`, `[0,2]`, `[1,∞)`, `[2,∞)`, `[½,3]`, `[1,3]`, `[2,5]`). שישה צעדים; תחום לא חסום נקרא «קרן» וחסום «קטע». `instanceDifficulty` קובע רמה לכל מופע (מעריכים שלמים — קל; שברים — A בינוני, B מתקדם). כל תרגיל נושא מפרט גרף מ-`plotSpecOf` (גבול 0, נקודה קריטית \(x_n\) מסומנת, חלון לפי n=1 ו-n=4). מפרט המשפחות: `docs/question-families/supremum-practice.md` |
+| `practice/supremumFamilies.test.ts` | רשת מלאה של כל המופעים: בדיקה עצמית מספרית (`selfCheck`) מול סופרמום גס, אימות, KaTeX ומסיחים, דוגמאות קלאסיות, רישום בבנק, והגרלות אקראיות שאינן נופלות לבדיקה העצמית |
+| `practice/uniformFamilies.ts` | אחת-עשרה משפחות לנושא «התכנסות נקודתית ובמידה שווה» (`UNIFORM_FAMILIES`): \(\ln(1+cx^n)\), \(\frac{x^n}{1+x^{2n}}\), \(\cos(mx^n)\), \(\sin(x^{1/n})\), מנת הפרשים \(\frac nk(\varphi(x+\frac kn)-\varphi(x))\) ל-sin/cos, \(1-\cos\frac xn\), \(n((x+\frac1n)^p-x^p)\), \(\arctan(nx)\), \(e^{-nx}\), שתי משפחות החלקה בשורש, ושתי משפחות \(x^n(1-x)\) ו-\(nx^n(1-x)\). 95 מופעים (64 במידה שווה, 31 לא; 49 קל, 32 בינוני, 14 מתקדם). התחום הוא הפרמטר המרכזי, והוא קובע את הטכניקה (קיצור לפי משפט הרציפות, סופרמום מדויק — מונוטוני או מתקרבים אליו בלי להשיגו, נקודה נעה, חסם באי־שוויון כולל לגראנז'); שמות העצם «קטע»/«קרן»/«ישר» (`nounOf`) ורמה לכל מופע. מפרט הגרף נגזר ממודל מספרי, ו-`checkModel` מאמת כל מופע מול סופרמום גס, גבול, פסק דין, חסם נטען ונקודה נעה. מפרט: `docs/question-families/uniform-practice.md` |
+| `practice/uniformFamilies.test.ts` | רשת מלאה של כל מופעי כל המשפחות, הגרלות שמכבדות רמה ונשארות תקינות, ובדיקה ש-`checkModel` אכן מזהה טענות שגויות |
+| `practice/continuityFamilies.ts` | חמש משפחות לנושא «רציפות הגבול» (`continuity`; `CONTINUITY_FAMILIES`), 136 מופעים (69 במידה שווה, 67 לא; 44 קל, 63 בינוני, 29 מתקדם). בכולן \(f_n\) מוגדרת למקוטעין והשאלה היא «האם \(f_n\to f\) במידה שווה בתחום?»; התחום הוא פרמטר מרכזי. `cont-unbounded`: \(f_n\) חסומות וגבול לא חסום — משופע \(m^{p+1}x\) ואז \(x^{-p}\), או חיתוך \(\min\{n,h(x)\}\) עם \(h\in\{\frac1x,\frac1{\sqrt x},\ln\frac1x\}\); `cont-ramp`: גבולות מסוג הביסייד משיפועים (מוזזים, דו־צדדיים, ותחומים «פתוח ב-a» ו«רחוק»); `cont-moving-peak`: אוהל ופעמון \(\frac{2nx}{1+n^2x^2}\) בגובה \(h\), \(\frac hn\) או \(\frac h{\sqrt n}\) (גבול רציף, לא במידה שווה כשהגובה נשאר); `cont-floor`: \(\frac{c\lfloor nx\rfloor}n\) (במידה שווה לגבול רציף) ו-\(\frac{c\lfloor nx\rfloor}{n^2}\) (לא במידה שווה על \([0,\infty)\)); `cont-indicator`: \(f_n\) מדרגות, שבהן הנחת משפט הרציפות נכשלת. הצעדים משלבים את משפט הרציפות, חסימות הגבול ומבחן הסופרמום, ומודל מספרי עם `Book` בודק כל מופע. מפרט: `docs/question-families/continuity-practice.md` |
+| `practice/continuityFamilies.test.ts` | רשת מלאה של כל המופעים (בדיקה עצמית מספרית, אימות, KaTeX, מסיחים ומפרט הגרף), כיסוי רמות ומופעים נבדלים לכל רמה, הגרלות שמכבדות רמה, בדיקה ש-`checkModel` מזהה טענות שגויות, שברים מצומצמים והעתקה העברית לפי המילון |
+| `practice/practiceBank.ts` | `familiesFor(filter, families, level)`, `availableTopics(level)`, `availableLevels(filter)`, `validateExercise`, `drawExercise(filter, seed, avoid, families, level)`: הגרלה מוזרעת עם אימות עצמי של הפלט (עד 20 ניסיונות, הימנעות מחתימת התרגיל שעל המסך), ודוחה תרגיל מרמה אחרת מהמבוקשת; `null` כשאין משפחה או מופע תקין |
+| `practice/practiceBank.test.ts` | תקינות כל משפחה על מדגם זרעים, KaTeX נבדק ישירות עם `katex` כדי ששכבת ה-practice תישאר בלי React, שחזור לפי זרע, סינון נושא ומשפחה שבורה |
+| `components/PracticePlot.tsx` | גרף SVG של כרטיס התרגיל מתוך `PracticePlotSpec`: דגימה צפופה (לוגריתמית + אחידה, לפסגות צרות ליד 0), אזורים מחוץ לתחום דהויים, קווי גבול ונקודות קצה, הגבול, פס ε, סמן עם קו ירידה לנקודה הקריטית, סמן לפסגה חתוכה, ומקרא בלבד. עבור `breaks`/`limitBreaks` העקומה נחתכת בכל נקודת קפיצה (שום דבר אינו מחובר מעבר לה) ונקודות פתוחות/סגורות מסמנות את הגבולות החד־צדדיים והערך הנלקח; עוזרי הדגימה `splitSamples` ו-`breakDots` מיוצאים לבדיקה, ומעל `BREAK_DOT_MAX = 24` קפיצות (מדרגות צפופות) העקומה נחתכת בלי נקודות; מחלקות `.practice-plot-*` |
+| `components/practicePlot.test.ts` | בדיקות הגרף |
+| `components/PracticeActivity.tsx` | מסנן נושאים (`.segmented-control.practice-topics`, נושא בלי משפחות מושבת), בקרת מקטעים שנייה לרמת קושי (`.practice-levels`), «תרגיל חדש», הגרף ב-`.practice-plot-panel` עם `SliderPanel` המשותף (n, ε), כרטיס תרגיל (`.practice-exercise-card`) וצעדים (`.practice-step`, `.is-solved`). ההגרלה הראשונה בזרע קבוע (SSR והידרציה מסכימים); הגרלות מאוחרות מערבבות אנטרופיה לכל ביקור הנקראת ב-effect |
+| `components/practiceActivity.test.ts` | רינדור SSR של הפעילות |
+
+מחלקות ה-CSS הן בלוק `.practice-*` ב-`globals.css`.
+
 ### קומפוננטות (`components/`)
 
 | קובץ | תפקיד |
 |---|---|
 | `MathText.tsx`, `DisplayMath.tsx` | עותק של רינדור KaTeX ממודול אוילר (ראו §7) |
-| `SubjectModule.tsx` | shell משותף לארבעת הנושאים; תפריט הפעילויות ומעבר למעבדת ההתכנסות או למבחן הסופרמום עבור סדרות פונקציות |
+| `SubjectModule.tsx` | shell משותף לארבעת הנושאים; תפריט הפעילויות ומעבר לפעילויות (כולל התרגול המסכם) עבור סדרות פונקציות |
 | `SupremumActivity.tsx`, `SupremumPlot.tsx`, `SupSequencePlot.tsx`, `SlotTemplate.tsx`, `CandidateTable.tsx`, `ReasonChecklist.tsx`, `SpecChoice.tsx`, `MathInlineText.tsx` | פעילות מבחן הסופרמום (ראו לעיל) |
+| `GuidedStepParts.tsx`, `GuidedProofDialog.tsx`, `SupremumProofDialog.tsx` | חלקי המנוע המודרך המשותף (ראו «מנוע שלבים מודרך משותף») |
+| `GuidedExampleActivity.tsx` | shell גנרי לפעילויות מודרכות בדוגמאות |
+| `ContinuityActivity.tsx`, `ContinuityIntro.tsx`, `ContinuityPlot.tsx` | פעילות רציפות פונקציית הגבול (ראו לעיל) |
+| `IntegralActivity.tsx`, `IntegralIntro.tsx`, `IntegralPlot.tsx`, `IntegralSequencePlot.tsx` | פעילות גבול ואינטגרל (ראו לעיל) |
+| `DerivativeActivity.tsx`, `DerivativeIntro.tsx`, `DerivativePlot.tsx` | פעילות גבול ונגזרת (ראו לעיל) |
+| `PracticeActivity.tsx`, `PracticePlot.tsx` | התרגול המסכם והגרף שלו (ראו «תרגול מסכם») |
 | `FunctionSeriesSection.tsx`, `PowerSeriesSection.tsx`, `TaylorSeriesSection.tsx` | תוכן placeholder לשלושת הנושאים שטרם מומשו |
 
-`math/mathTypography.ts` הוא עותק של עזרי מחלקות CSS, שנדרש ל-`MathText`/`DisplayMath`. קיימת שכבת `math/` עבור מעבדת ההתכנסות ומבחן הסופרמום (קבצי `supremum*.ts`), אך אין תיקיית `practice/` נפרדת: בדיקות התשובה והאינטראקציה הטהורות נמצאות ב-`math/convergenceActivity.ts`, ובפעילות הסופרמום ב-`math/supremumArgument.ts`.
+`math/mathTypography.ts` הוא עותק של עזרי מחלקות CSS, שנדרש ל-`MathText`/`DisplayMath`. קיימת שכבת `math/` עבור מעבדת ההתכנסות, מבחן הסופרמום (קבצי `supremum*.ts`), המנוע המשותף (`guided*.ts`) פעילויות הרציפות (`continuity*.ts`) האינטגרל (`integral*.ts`) והנגזרת (`derivative*.ts`); תיקיית `practice/` קיימת רק עבור התרגול המסכם (ראו לעיל). בדיקות התשובה והאינטראקציה הטהורות נמצאות ב-`math/convergenceActivity.ts`, ובפעילויות המודרכות ב-`math/guidedSteps.ts`.
 
 ### מה עדיין חסר במודול
 
 - הרחבת מעבדת ההתכנסות מעבר למשפחות האנליטיות הקבועות, ובפרט משימות ε–N ואי־רציפות/העברת גבול.
+- פעילות «רציפות פונקציית הגבול»: כתיבה מחדש של הטקסטים (שלבים, הסברים) דוגמה אחר דוגמה עם בעל הקורס, דוגמאות 2 ו-3 כבר עודכנו חלקית והסיכומים נכתבו.
+- פעילות «גבול ואינטגרל»: הטקסטים (מבוא, שלבים, הסברים) הם טיוטה לכתיבה מחדש עם בעל הקורס; סיכומי I1–I3 (`INT_SUMMARIES`) הם טיוטה הממתינה לטקסט של בעל הקורס.
+- פעילות «גבול ונגזרת»: הטקסטים (מבוא, שלבים, הסברים) הם טיוטה לכתיבה מחדש עם בעל הקורס; סיכומי D1–D3 טרם נכתבו (אין `DER_SUMMARIES`).
+- אין עוד פעילויות מתוכננות בתפריט סדרות הפונקציות.
 - מילוי ארבעת slots ההסבר ב-`ConvergenceLessonExplanations.tsx` בתוכן לימודי, אם יידרש; כרגע הם ריקים במכוון.
 - הרחבות אפשריות למבחן הסופרמום (v2): שלב `[a,∞)`, «מצאו את השורה השגויה», והדוגמה הנוספת `x/(n+x)`.
 - פעילויות על טורי פונקציות, טורי חזקות וטורי טיילור.
-- שכבת `practice/` נפרדת, גנרטורים ו-`SeededRandom` עבור תרגול שנוצר.
+- מאגר התרגילים של התרגול המסכם: נושא הסופרמום מכוסה בשתי משפחות (A, B), נושא «נקודתית» מאוכלס באחת-עשרה משפחות (`uniformFamilies.ts`), נושא «רציפות הגבול» בחמש משפחות (`continuityFamilies.ts`), ורמות הקושי והגרף קיימים. עדיין יש לתכנן משפחות לשני הנושאים האחרים — אינטגרל ונגזרת — ומדיניות הגרלה, יחד עם בעל הקורס. שאלות פתוחות לבעל הקורס בנושא הנקודתית רשומות ב-`docs/question-families/uniform-practice.md`. שאלה פתוחה: חלקם של מלכודות `[α,M]` בסופרמום. ראו `docs/plans/summary-practice.md`.
 - נושאי רציפות, אינטגרציה וגזירה איבר־איבר; הם נשארים מתוכננים ואינם ממומשים במעבדה הנוכחית.
 
 ---
@@ -658,7 +748,7 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 ## 9. תשתית ופריסה
 
 - **פיתוח:** `npm run dev` (vinext), `npm run build` (`next build --webpack`).
-- **בדיקות:** `npm test` (vitest) — `app/constant-coefficients-euler/{math,practice}/*.test.ts`, `app/linear-homogeneous/math/*.test.ts`, `app/function-sequences-series/math/*.test.ts`, בדיקות קורסים ואיורים, ניווט, סנכרון, זיהוי לחיצה, מעבר כניסה ורינדור כרטיס. בדיקות הסנכרון מכסות תאימות לפקודת ODE, הפרדת קורסים, פרסור כותרות וארגומנטים לא תקינים.
+- **בדיקות:** `npm test` (vitest) — `app/constant-coefficients-euler/{math,practice}/*.test.ts`, `app/linear-homogeneous/math/*.test.ts`, `app/function-sequences-series/{math,practice}/*.test.ts`, בדיקות קורסים ואיורים, ניווט, סנכרון, זיהוי לחיצה, מעבר כניסה ורינדור כרטיס. בדיקות הסנכרון מכסות תאימות לפקודת ODE, הפרדת קורסים, פרסור כותרות וארגומנטים לא תקינים.
 - **סנכרון הרשימות:** `npx tsx scripts/sync-course-notes.ts [תיקיית הרשימות]` (ברירת מחדל: ODE, שתי רמות מעל המאגר); לקורס פוריה: `npx tsx scripts/sync-course-notes.ts --course fourier "<תיקיית הרשימות>"`. הסקריפט מפרסר `main.toc`, מנרמל כותרות ובודק שיוך סעיפים ומונוטוניות עמודים, קורא היסט מ-`/PageLabels`, וכותב את `notesToc.ts` המתאים ומעתיק שלושה PDFs. שמות המקור במד״ר: `main.pdf`, `ExtendedSyllabus_winter2026.pdf`, `FormulaSheet.pdf`; בפוריה: `main.pdf`, `ElaborateSyllabus.pdf`, `formula_sheet.pdf`. ב-Fourier שלוש כותרות מתמטיות מוכרות מומרות למילים עבריות; LaTeX לא מוכר נכשל במפורש. ברירת המחדל של ODE נשארת תואמת לפקודה הישנה.
 - **Worker:** `worker/index.ts` — handler ל-Cloudflare Workers + אופטימיזציית תמונות; auth משתמש ב-D1 וב-private R2.
 - **הגדרת מסד מקומי:** `scripts/setup-auth.ts` במצב `node` מחיל מיגרציות ממתינות לפי הסדר (0000, 0001) ומסרב לסכימה חלקית או שאינה בסדר; ב-D1 המעקב אחר מיגרציות נעשה ב-wrangler.
@@ -689,5 +779,5 @@ Vitest (`npm test`, `app/**/*.test.ts`):
 - **קורא הרשימות משודרג, לא מחליף:** כל קישור לרשימות הוא קודם כול קישור רגיל ללשונית חדשה, והקורא רק מיירט אותו. לכן אין מצב שבו הרשימות לא נגישות. ה-breakpoint של 820px קיים פעמיים, ב-CSS וב-`useNotesReaderAvailable`; מי שמשנה אחד צריך לשנות את השני.
 - **כפילות מכוונת:** ל-`MathText`/`DisplayMath`/`mathTypography` יש ארבע גרסאות (פאזה מקומית; עותק זהה באוילר, בהומוגניות ובסדרות הפונקציות). אין עדיין חבילת UI מתמטי משותפת.
 - **פרדיגמות מתמטיות:** מודולי הפאזה ואוילר עובדים עם מבנים סגורים (מטריצות 2×2, שורשים, פולינומים). מודול ההומוגניות מפרסר נוסחאות חופשיות ומפעיל nerdamer — עם מדיניות זהירות סביב `e`/`π` ופישוט לתצוגה מול אימות. מעבדת סדרות הפונקציות משתמשת בסיווג אנליטי ידני למשפחות מוגדרות ובגאומטריית SVG תצוגתית; אין בה CAS או פרסר נוסחאות כללי.
-- **שיתוף נקודתי:** הגנרטור של ההשלמה למערכת יסודית מייבא `SeededRandom` ממודול אוילר. זה הקשר היחיד בין המודולים בקוד. מודול סדרות הפונקציות מתוכנן למחזר את אותו `SeededRandom` כשתיבנה שכבת `practice/`. בנוסף, ארבעת המודולים מייבאים את `app/ode/OdeModuleBreadcrumbs` — תלות בשכבת הקורס, לא במודול אחר. מודול שישותף בעתיד בין קורסים יצטרך לקבל את ה-breadcrumbs מבחוץ.
+- **שיתוף נקודתי:** הגנרטור של ההשלמה למערכת יסודית מייבא `SeededRandom` ממודול אוילר. זה הקשר היחיד בין המודולים בקוד. גם שכבת `practice/` של מודול סדרות הפונקציות (התרגול המסכם) מייבאת את `SeededRandom` ו־`mixSeed` מאותו מקום. בנוסף, ארבעת המודולים מייבאים את `app/ode/OdeModuleBreadcrumbs` — תלות בשכבת הקורס, לא במודול אחר. מודול שישותף בעתיד בין קורסים יצטרך לקבל את ה-breadcrumbs מבחוץ.
 - **Persistence ממוקד:** אין שמירה של תשובות או סטטיסטיקות תרגול; הן חיות בזיכרון ומתאפסות ברענון. חריג צר אחד בצד הלקוח: `kiri-math:text-size` ב-localStorage (העדפת גודל טקסט, לעולם לא מצב תרגול). החריג השני הוא נתוני זהות, throttling, sessions והרשאות החשבונות הנדרשים לאכיפת גישה. החריג השלישי: סימוני השלמה של פעילויות (`activity_completions`, `app/_progress/`) — השלמה בלבד, בלי תשובות או מצב באמצע פעילות; כל פעילות חדשה חייבת נקודת סיום מוגדרת. אין להרחיב את ההתמדה מעבר לכך. אין רישום משתמשים או תשלום מקוון; יצירה ומתן/ביטול הרשאות נעשים ידנית דרך CLI.
